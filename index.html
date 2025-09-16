@@ -1,0 +1,645 @@
+<!-- ======= BUDGET-APP (FAST LÄNK MED key=, INGEN ID) ======= -->
+<div id="budgetApp">
+  <style>
+    #budgetApp :root{ --bg:#e9f6f8; --accent:#0b3b4c; --muted:#a0b7bb; --good:#1b8f4a; --bad:#d23b3b; --card:#ffffff; }
+    #budgetApp{font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial; color:#042b33;}
+    #budgetApp .wrap{max-width:1100px;margin:0 auto;padding:16px;}
+    #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+    #budgetApp button{background:var(--card); border:1px solid #cfe3e6; padding:8px 10px; border-radius:8px; cursor:pointer;}
+    #budgetApp button.primary{background:#0d6c77;color:white;border:0}
+    #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
+    #budgetApp .table-wrap{overflow:auto;background:var(--card); padding:8px; border-radius:10px; border:1px solid #d6e9eb;}
+    #budgetApp table{width:100%; border-collapse:collapse; min-width:760px;}
+    #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
+    #budgetApp th{background:#07232b;color:white; font-weight:700;}
+    #budgetApp td input[type="text"], 
+    #budgetApp td input[type="number"], 
+    #budgetApp td select {width:100%; border:0; background:transparent; padding:6px; font-size:14px;}
+    #budgetApp .right{text-align:right;}
+    #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
+    #budgetApp .card{background:linear-gradient(180deg,#ffffff, #f7ffff); border-radius:10px; padding:10px; border:1px solid #d6e9eb; min-width:220px}
+    #budgetApp .big{font-size:18px;font-weight:700;}
+    #budgetApp .good{color:var(--good);} 
+    #budgetApp .bad{color:var(--bad);} 
+    #budgetApp .small{font-size:13px;color:#2b4c52;}
+    #budgetApp .row-actions{display:flex; gap:6px;}
+    #budgetApp .hint{font-size:13px;color:#2b4c52;margin-top:8px}
+    #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
+    #budgetApp .salary-box input{font-size:16px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; width:220px}
+    #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
+    #budgetApp tr.dragging{opacity:0.6}
+    #budgetApp tr.drag-over{outline:2px dashed #0d6c77}
+    #budgetApp .empty-row{color:#6b8a90; font-style:italic; text-align:center;}
+    #budgetApp .empty-cell{padding:18px;}
+    #budgetApp .card.salary   { background:#e6f1ff; border-color:#c6ddff; }
+    #budgetApp .card.income   { background:#e6ffe6; border-color:#c2e9c2; }
+    #budgetApp .card.expense  { background:#ffe6e6; border-color:#f1bcbc; }
+    #budgetApp .card.salaryLeft { background:#fff9e6; border-color:#f6e9b5; }
+    #budgetApp .card.balance,
+    #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
+    #budgetApp details.helpbox { background:#fff; border:1px solid #d6e9eb; border-radius:10px; padding:10px; margin-top:10px; }
+    #budgetApp details.helpbox[open]{ background:#f7fbff; }
+    #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; }
+    #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
+    #budgetApp .helpbox-content{ color:#2b4c52; font-size:14px; }
+    #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
+    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
+    #budgetApp .live-note{font-size:12px; color:#6b8a90}
+    #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
+    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
+    #cloudInfo{font-size:12px; color:#6b8a90}
+    #budgetApp.dark{ color:#f2f7f8; }
+    #budgetApp.dark .controls button,
+    #budgetApp.dark .table-wrap,
+    #budgetApp.dark .card{ background:#152a2e; border-color:#244248; color:#f2f7f8; }
+    #budgetApp.dark table{ background:#152a2e; }
+    #budgetApp.dark th{ background:#1c3b40; color:#ffffff; border-color:#244248; }
+    #budgetApp.dark td{ border-color:#244248; }
+    #budgetApp.dark input, 
+    #budgetApp.dark select{ color:#f2f7f8; }
+    #budgetApp.dark .hint,
+    #budgetApp.dark .helpbox-content{ color:#dbe7ea; }
+    #budgetApp.dark .card.salary{ background:#1b2b3a; }
+    #budgetApp.dark .card.income{ background:#193225; }
+    #budgetApp.dark .card.expense{ background:#3a1b1b; }
+    #budgetApp.dark .card.salaryLeft{ background:#2e2a1a; }
+    #budgetApp.dark .card.balance,
+    #budgetApp.dark .card.buffer{ background:#1a2933; }
+    #budgetApp.dark .live-link input[type=text]{ background:#1f3338; border-color:#244248; }
+    #budgetApp.dark #cloudControls input[type=text]{ background:#1f3338; border-color:#244248; }
+  </style>
+
+  <div class="wrap">
+    <div class="controls">
+      <button class="primary" id="addRowBtn">+ Lägg till rad</button>
+      <button id="shareBtn">Dela länk</button>
+      <button id="copyBtn">Kopiera</button>
+      <button id="shareImageBtn">Dela bild</button>
+      <button id="resetBtn" class="danger" title="Nollställ allt till 0">Nollställ</button>
+      <button id="darkModeBtn" title="Växla tema">Mörkt läge</button>
+    </div>
+
+    <!-- Fast delningslänk -->
+    <div class="live-link" id="liveLinkWrap" aria-live="polite">
+      <span class="small">Delningslänk (alltid samma):</span>
+      <input id="liveLink" type="text" readonly value="" />
+      <button id="copyLiveLinkBtn" title="Kopiera delningslänk">Kopiera länk</button>
+      <div class="live-note" id="liveLinkNote">Detta är er permanenta länk. Dela samma länk mellan enheter.</div>
+    </div>
+
+    <!-- Moln -->
+    <div id="cloudControls">
+      <button id="cloudSaveBtn" title="Spara till molnet">Spara (moln)</button>
+      <input id="cloudIdInput" type="text" placeholder="Nyckel (t.ex. budgetdb)" />
+      <button id="cloudLoadBtn" title="Öppna från molnet">Öppna (nyckel)</button>
+      <div id="cloudInfo"></div>
+    </div>
+
+    <!-- Månadslön -->
+    <div class="card salary-box" aria-live="polite">
+      <div>
+        <div class="small">Månadslön (netto)</div>
+        <input id="salaryInput" type="number" step="1" min="0" placeholder="t.ex. 36 000" />
+      </div>
+      <div class="small">Används i saldot: <strong>(lön + övriga inkomster) − utgifter</strong></div>
+    </div>
+
+    <div class="table-wrap card">
+      <table id="budgetTable" aria-label="Budgettabell">
+        <thead>
+          <tr>
+            <th style="width:34px">↕︎</th>
+            <th style="width:260px">Kategori</th>
+            <th style="width:140px">Belopp</th>
+            <th style="width:120px">Typ</th>
+            <th>Anteckningar</th>
+            <th style="width:140px">Åtgärd</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="6" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sum-box">
+      <div class="card salary">
+        <div class="small">Månadslön</div>
+        <div id="salaryDisplay" class="big">0 kr</div>
+      </div>
+
+      <div class="card salaryLeft">
+        <div class="small">Kvar av lönen (utan övriga inkomster)</div>
+        <div id="salaryLeft" class="big">0 kr</div>
+      </div>
+
+      <div class="card income">
+        <div class="small">Totala inkomster (övriga)</div>
+        <div id="totalIncome" class="big good">0 kr</div>
+      </div>
+
+      <div class="card expense">
+        <div class="small">Totala utgifter</div>
+        <div id="totalExpense" class="big bad">0 kr</div>
+      </div>
+
+      <div class="card balance">
+        <div class="small">Saldo (inkl. lön + övriga inkomster)</div>
+        <div id="balance" class="big">0 kr</div>
+      </div>
+
+      <div class="card buffer">
+        <div class="small">Buffert (möjlig att spara)</div>
+        <div id="buffer" class="big">0 kr</div>
+      </div>
+    </div>
+
+    <!-- Hjälp & förklaringar -->
+    <details class="helpbox>
+      <summary>
+        Hjälp & förklaringar
+        <span class="chev">▾</span>
+      </summary>
+      <div class="helpbox-content">
+        <p><strong>Så använder ni:</strong> Börja med att fylla i er månadslön, lägg sedan till rader för inkomster och utgifter. Ni kan flytta rader med ≡ eller ↑/↓.</p>
+        <ul>
+          <li><strong>Månadslön:</strong> Den totala lönen ni får in under månaden.</li>
+          <li><strong>Kvar av lönen (utan övriga inkomster):</strong> Hur mycket av lönen som återstår när utgifterna dragits – visar hur långt just lönen räcker.</li>
+          <li><strong>Totala inkomster (övriga):</strong> Alla inkomster utöver lönen, t.ex. barnbidrag, bostadsbidrag, extrajobb/sidoinkomst, ersättningar, återbetalningar eller stöd från familj.</li>
+          <li><strong>Totala utgifter:</strong> Summan av alla kostnader ni lagt in (hyra, el, försäkringar, mat, bensin, abonnemang, övriga räkningar).</li>
+          <li><strong>Saldo (inkl. lön + övriga inkomster):</strong> Slutresultat = lön + övriga inkomster − utgifter.</li>
+          <li><strong>Buffert:</strong> Visar hur mycket ni faktiskt kan spara undan denna månad.</li>
+        </ul>
+      </div>
+    </details>
+
+    <div class="hint">
+      Tips: Börja med lönen, lägg sen till rader. Flytta rader med ≡ eller ↑/↓.
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const root = document.getElementById('budgetApp');
+
+    // ===== KONFIG: DIN Apps Script "exec"-URL =====
+    const CLOUD = {
+      endpoint: 'https://script.google.com/macros/s/AKfycbxG3zENX_dIBGbn1zzNWJo9UnZikx-TofN7VjqaYmkQv0ghaPXJ_xB5jhd_3WQOsQ_R/exec',
+      secret: ''
+    };
+
+    // UI refs
+    const tbody           = root.querySelector('#tbody');
+    const addRowBtn       = root.querySelector('#addRowBtn');
+    const shareBtn        = root.querySelector('#shareBtn');
+    const copyBtn         = root.querySelector('#copyBtn');
+    const shareImageBtn   = root.querySelector('#shareImageBtn');
+    const resetBtn        = root.querySelector('#resetBtn');
+    const darkModeBtn     = root.querySelector('#darkModeBtn');
+
+    const liveLinkInput   = root.querySelector('#liveLink');
+    const copyLiveLinkBtn = root.querySelector('#copyLiveLinkBtn');
+    const liveLinkNote    = root.querySelector('#liveLinkNote');
+
+    // Moln
+    const cloudSaveBtn  = root.querySelector('#cloudSaveBtn');
+    const cloudLoadBtn  = root.querySelector('#cloudLoadBtn');
+    const cloudIdInput  = root.querySelector('#cloudIdInput'); // används som "nyckel"
+    const cloudInfo     = root.querySelector('#cloudInfo');
+
+    // Summor
+    const totalIncomeEl   = root.querySelector('#totalIncome');
+    const totalExpenseEl  = root.querySelector('#totalExpense');
+    const balanceEl       = root.querySelector('#balance');
+    const salaryInput     = root.querySelector('#salaryInput');
+    const salaryLeftEl    = root.querySelector('#salaryLeft');
+    const salaryDisplayEl = root.querySelector('#salaryDisplay');
+    const bufferEl        = root.querySelector('#buffer');
+
+    const STORAGE_KEY = 'budget_app_v1';
+    const STORAGE_SALARY_KEY = 'budget_app_salary_v1';
+
+    const fmt = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 });
+
+    let rows = [];
+    let salary = 0;
+
+    // ---- KEY-länk (fast länk som alltid funkar) ----
+    function getKey(){
+      try{
+        const p = new URLSearchParams(location.search);
+        const k = (p.get('key')||'').trim().toLowerCase();
+        return k || 'budgetdb';
+      }catch(_){ return 'budgetdb'; }
+    }
+    function shareLinkForKey(){
+      const base = location.origin + location.pathname;
+      return `${base}?key=${encodeURIComponent(getKey())}`;
+    }
+    function updateShareInAddressBar(){
+      const link = shareLinkForKey();
+      try{ history.replaceState(null, '', link); }catch(_){}
+      liveLinkInput.value = link;
+      liveLinkNote.textContent = 'Detta är er permanenta länk. Dela samma länk mellan enheter.';
+    }
+
+    // -------- Init --------
+    function init(){
+      // Förifyll key-rutan
+      cloudIdInput.value = getKey();
+
+      // Lön från localStorage
+      const rawSalary = localStorage.getItem(STORAGE_SALARY_KEY);
+      if(rawSalary) salary = Number(rawSalary) || 0;
+      salaryInput.value = salary || '';
+      salaryInput.addEventListener('input', ()=>{
+        salary = Number(salaryInput.value)||0;
+        localStorage.setItem(STORAGE_SALARY_KEY, String(salary));
+        updateTotals();
+      });
+
+      // Hämta från molnet för aktuell key
+      cloudLoadFromKey(getKey(), true);
+
+      // Mörkt läge om sparat
+      if(localStorage.getItem('budget_app_dark')==='1'){
+        root.classList.add('dark');
+        if(darkModeBtn) darkModeBtn.textContent = 'Ljust läge';
+      }
+
+      updateShareInAddressBar();
+    }
+
+    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); }
+
+    // -------- Render --------
+    function render(){
+      tbody.innerHTML = '';
+      if(rows.length === 0){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td>`;
+        tbody.appendChild(tr);
+        updateTotals(); save();
+        return;
+      }
+      rows.forEach((r, i)=>{
+        const tr = document.createElement('tr');
+        tr.dataset.index = i;
+        tr.innerHTML = `
+          <td><span class="drag-handle" draggable="true" title="Dra för att flytta">≡</span></td>
+          <td><input type="text"   data-i="${i}" data-col="category" value="${escapeHtml(r.category)}"></td>
+          <td class="right"><input type="number" data-i="${i}" data-col="amount"   value="${r.amount}" step="1"></td>
+          <td>
+            <select data-i="${i}" data-col="type">
+              <option ${r.type==='Utgift'?'selected':''}>Utgift</option>
+              <option ${r.type==='Inkomst'?'selected':''}>Inkomst</option>
+            </select>
+          </td>
+          <td><input type="text" data-i="${i}" data-col="note" value="${escapeHtml(r.note||'')}"></td>
+          <td class="row-actions">
+            <button data-action="up"   data-i="${i}" title="Flytta upp">↑</button>
+            <button data-action="down" data-i="${i}" title="Flytta ner">↓</button>
+            <button data-action="neg"  data-i="${i}" title="Växla positiv/negativ">±</button>
+            <button data-action="del"  data-i="${i}" title="Ta bort" style="background:#ffdede">Ta bort</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      attachEvents();
+      attachDragAndDrop();
+      updateTotals();
+      save();
+    }
+
+    // -------- Händelser --------
+    function attachEvents(){
+      tbody.querySelectorAll('input, select').forEach(el=>{
+        el.onchange = ()=>{
+          const i = +el.dataset.i;
+          const col = el.dataset.col;
+          if(col==='amount') rows[i][col] = Number(el.value) || 0; else rows[i][col] = el.value;
+          render();
+        };
+      });
+      tbody.querySelectorAll('button[data-action]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const i = +btn.dataset.i;
+          const act = btn.dataset.action;
+          if(act==='del'){ rows.splice(i,1); render(); }
+          else if(act==='neg'){ rows[i].amount = -rows[i].amount; render(); }
+          else if(act==='up'){ if(i>0) moveRow(i, i-1); }
+          else if(act==='down'){ if(i<rows.length-1) moveRow(i, i+1); }
+        };
+      });
+
+      // Moln
+      cloudSaveBtn.onclick = ()=> { cloudIdInput.value = getKey(); cloudSave(); };
+      cloudLoadBtn.onclick = ()=>{
+        const key = (cloudIdInput.value||'').trim().toLowerCase();
+        if(!key) return alert('Skriv in en nyckel, t.ex. budgetdb');
+        const base = location.origin + location.pathname;
+        try{ history.replaceState(null,'', `${base}?key=${encodeURIComponent(key)}`); }catch(_){}
+        cloudLoadFromKey(key);
+        updateShareInAddressBar();
+      };
+
+      // Delning
+      shareBtn.onclick = ()=>{
+        const link = shareLinkForKey();
+        (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
+          .then(()=> alert('Fast delningslänk kopierad.'))
+          .catch(()=> prompt('Kopiera länk:', link));
+      };
+      copyBtn.onclick = ()=>{
+        const link = shareLinkForKey();
+        (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
+          .then(()=> alert('Länk kopierad.'))
+          .catch(()=> prompt('Kopiera manuellt:', link));
+      };
+      copyLiveLinkBtn.onclick = ()=>{
+        const text = liveLinkInput.value;
+        (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+          .then(()=> alert('Länk kopierad.'))
+          .catch(()=> prompt('Kopiera manuellt:', text));
+      };
+    }
+
+    // Lägg till rad
+    addRowBtn.onclick = ()=>{
+      rows.push({category:'', amount:0, type:'Utgift', note:''});
+      render();
+      const lastInput = root.querySelector('#tbody tr:last-child td:nth-child(2) input');
+      if(lastInput) lastInput.focus();
+    };
+
+    // -------- Drag & drop --------
+    let draggedIndex = null;
+    function attachDragAndDrop(){
+      tbody.addEventListener('dragstart', (e)=>{
+        if(!e.target.closest('.drag-handle')) return;
+        const tr = e.target.closest('tr');
+        draggedIndex = +tr.dataset.index;
+        tr.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        try{ e.dataTransfer.setData('text/plain', String(draggedIndex)); }catch(_){}
+      });
+      tbody.addEventListener('dragend', ()=>{
+        draggedIndex = null;
+        tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('dragging','drag-over'));
+      });
+      tbody.addEventListener('dragover', (e)=>{
+        if(draggedIndex==null) return;
+        e.preventDefault();
+        const tr = e.target.closest('tr'); if(!tr) return;
+        tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over'));
+        tr.classList.add('drag-over');
+        try{ e.dataTransfer.dropEffect = 'move'; }catch(_){}
+      });
+      tbody.addEventListener('drop', (e)=>{
+        if(draggedIndex==null) return;
+        e.preventDefault();
+        const tr = e.target.closest('tr');
+        tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over'));
+        if(!tr) return;
+        const destIndex = +tr.dataset.index;
+        if(destIndex===draggedIndex) return;
+        moveRow(draggedIndex, destIndex);
+        draggedIndex = null;
+      });
+    }
+
+    function moveRow(from, to){
+      if(from<0||to<0||from>=rows.length||to>=rows.length) return;
+      const item = rows.splice(from,1)[0];
+      rows.splice(to,0,item);
+      render();
+    }
+
+    // -------- Summeringar --------
+    function updateTotals(){
+      let sumIncome = 0, sumExpense = 0;
+      rows.forEach(r=>{
+        const amt = Number(r.amount)||0;
+        if(r.type === 'Inkomst') sumIncome += amt; else sumExpense += amt;
+      });
+      totalIncomeEl.textContent  = fmt.format(Math.round(sumIncome));
+      totalExpenseEl.textContent = fmt.format(Math.round(sumExpense));
+      const s = Number(salary)||0;
+      salaryDisplayEl.textContent = fmt.format(Math.round(s));
+      const salaryLeft = Math.round(s - sumExpense);
+      salaryLeftEl.textContent = fmt.format(salaryLeft);
+      const balance = Math.round(s + sumIncome - sumExpense);
+      balanceEl.textContent = fmt.format(balance);
+      bufferEl.textContent = fmt.format(balance);
+      balanceEl.classList.toggle('bad', balance < 0);
+      balanceEl.classList.toggle('good', balance >= 0);
+      salaryLeftEl.classList.toggle('bad', salaryLeft < 0);
+      salaryLeftEl.classList.toggle('good', salaryLeft >= 0);
+      bufferEl.classList.toggle('bad', balance < 0);
+      bufferEl.classList.toggle('good', balance >= 0);
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+    }
+
+    // -------- Helpers --------
+    function escapeHtml(s){
+      return (s||'').toString()
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    /* ======= DELA SOM BILD ======= */
+    async function ensureHtml2Canvas(){
+      if(window.html2canvas) return;
+      await new Promise((res, rej)=>{
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        s.onload = res;
+        s.onerror = ()=>rej(new Error('Kunde inte ladda html2canvas'));
+        document.head.appendChild(s);
+      });
+    }
+    function buildImageSourceElement(){
+      const tmp = document.createElement('div');
+      tmp.style.position = 'fixed';
+      tmp.style.left = '-99999px';
+      tmp.style.top = '0';
+      tmp.style.padding = '12px';
+      tmp.style.background = '#ffffff';
+      tmp.style.width = (root.querySelector('.table-wrap')?.offsetWidth || 800) + 'px';
+      const title = document.createElement('div');
+      title.style.font = '600 18px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial';
+      title.style.margin = '0 0 8px';
+      title.textContent = 'Budgetöversikt';
+      tmp.appendChild(title);
+      const tableClone = root.querySelector('.table-wrap')?.cloneNode(true);
+      const sumClone   = root.querySelector('.sum-box')?.cloneNode(true);
+      if(tableClone) tmp.appendChild(tableClone);
+      if(sumClone){ sumClone.style.marginTop = '8px'; tmp.appendChild(sumClone); }
+      document.body.appendChild(tmp);
+      return tmp;
+    }
+    function dataURLFromCanvas(canvas){
+      try{ return canvas.toDataURL('image/png'); }catch(_){ return null; }
+    }
+    function triggerDownloadFromUrlOrBlob(name, src){
+      try{
+        const a = document.createElement('a');
+        a.download = name;
+        if(typeof src === 'string'){ a.href = src; }
+        else { const url = URL.createObjectURL(src); a.href = url; a._revokeUrl = url; }
+        document.body.appendChild(a); a.click(); a.remove();
+        if(a._revokeUrl) URL.revokeObjectURL(a._revokeUrl);
+        return true;
+      }catch(_){ return false; }
+    }
+    function openInNewTab(name, src){
+      try{
+        const url = (typeof src === 'string') ? src : URL.createObjectURL(src);
+        const win = window.open(url, '_blank');
+        if(!win){ alert('Popup blockerad. Tillåt popups eller prova igen.'); }
+        if(typeof src !== 'string'){ setTimeout(()=> URL.revokeObjectURL(url), 5000); }
+        return true;
+      }catch(_){ return false; }
+    }
+    shareImageBtn.onclick = async ()=>{
+      try{
+        await ensureHtml2Canvas();
+        const src = buildImageSourceElement();
+        const canvas = await html2canvas(src, { backgroundColor:'#ffffff', scale: window.devicePixelRatio>1?2:1, useCORS:true });
+        document.body.removeChild(src);
+        const done = async (blobOrDataUrl)=>{
+          if(blobOrDataUrl instanceof Blob){
+            const file = new File([blobOrDataUrl], 'budget.png', { type:'image/png' });
+            if(navigator.canShare && navigator.canShare({ files:[file] })){
+              try{ await navigator.share({ files:[file], title:'Budget', text:'Min budgetöversikt' }); return; }catch(_){}
+            }
+          }
+          if(navigator.clipboard && window.ClipboardItem){
+            try{
+              const item = blobOrDataUrl instanceof Blob
+                ? new ClipboardItem({ 'image/png': blobOrDataUrl })
+                : new ClipboardItem({ 'image/png': await (await fetch(blobOrDataUrl)).blob() });
+              await navigator.clipboard.write([item]);
+              alert('Bild kopierad till urklipp.'); return;
+            }catch(_){}
+          }
+          if(blobOrDataUrl instanceof Blob){
+            if(triggerDownloadFromUrlOrBlob('budget.png', blobOrDataUrl)) return;
+            openInNewTab('budget.png', blobOrDataUrl); return;
+          } else {
+            if(triggerDownloadFromUrlOrBlob('budget.png', blobOrDataUrl)) return;
+            openInNewTab('budget.png', blobOrDataUrl); return;
+          }
+        };
+        if(canvas.toBlob){
+          canvas.toBlob(async (blob)=>{ if(blob) await done(blob); else { const url=dataURLFromCanvas(canvas); if(!url) throw new Error('PNG misslyckades'); await done(url);} }, 'image/png');
+        } else {
+          const url = dataURLFromCanvas(canvas); if(!url) throw new Error('PNG misslyckades'); await done(url);
+        }
+      }catch(e){ alert('Kunde inte skapa bild: ' + e.message); }
+    };
+    /* ======= /DELA SOM BILD ======= */
+
+    // ======== MOLN via Google Apps Script (PER KEY) ========
+    function payload(){ return { rows, salary: Number(salary)||0 }; }
+
+    async function cloudSave(){
+      if(!CLOUD.endpoint){
+        alert('Moln är inte konfigurerat.');
+        return;
+      }
+      try{
+        const form = new URLSearchParams();
+        form.set('op', 'save');
+        form.set('key', getKey());
+        form.set('secret', CLOUD.secret || '');
+        form.set('data', JSON.stringify(payload()));
+
+        const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
+        const text = await res.text(); // robust mot fel
+        let json; 
+        try{ json = JSON.parse(text); }
+        catch(_){ throw new Error('Fel från servern: ' + text.slice(0,200)); }
+        if(!json.ok) throw new Error(json.error||'Sparning misslyckades');
+
+        cloudInfo.textContent = `Sparat för nyckel: ${getKey()}`;
+        updateShareInAddressBar();
+        alert('Sparat i molnet.');
+      }catch(e){
+        alert('Molnfel: ' + e.message);
+      }
+    }
+
+    async function cloudLoadFromKey(key, quiet=false){
+      if(!CLOUD.endpoint){
+        alert('Moln är inte konfigurerat.');
+        return;
+      }
+      try{
+        const url = `${CLOUD.endpoint}?op=load&key=${encodeURIComponent(key)}`;
+        const res = await fetch(url, { method:'GET' });
+        const text = await res.text();
+        let json; 
+        try{ json = JSON.parse(text); }
+        catch(_){ 
+          console.error('Server raw response:', text);
+          throw new Error('Servern svarade inte med JSON. Kolla att du använder exec-URL och rätt behörighet.');
+        }
+
+        if(!json.ok){
+          if(json.error && json.error.toLowerCase() !== 'not found' && !quiet){
+            alert('Molnfel: ' + json.error);
+          }
+          rows = []; render(); updateTotals(); updateShareInAddressBar();
+          cloudInfo.textContent = `Ingen data hittad för nyckel: ${key}`;
+          return;
+        }
+
+        const d = json.data;
+        if(!d || !Array.isArray(d.rows)) throw new Error('Ogiltig data från servern');
+        rows = d.rows.map(r=>({ category:r.category||'', amount:Number(r.amount)||0, type:r.type||'Utgift', note:r.note||'' }));
+        salary = Number(d.salary)||0; salaryInput.value = salary || '';
+        localStorage.setItem(STORAGE_SALARY_KEY, String(salary));
+        render(); updateTotals();
+        cloudInfo.textContent = `Öppnat nyckel: ${key}`;
+        updateShareInAddressBar();
+        if(!quiet) alert('Öppnat från molnet.');
+      }catch(e){
+        console.error(e);
+        alert('Molnfel: ' + e.message);
+      }
+    }
+    // ======== /MOLN ========
+
+    // ---- Nollställ ----
+    resetBtn.onclick = ()=>{
+      if(!confirm('Nollställa ALLT (rader + lön) till 0?')) return;
+      rows = [];
+      salary = 0;
+      salaryInput.value = '';
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_SALARY_KEY);
+      try{
+        const base = location.origin + location.pathname;
+        history.replaceState(null, '', `${base}?key=${encodeURIComponent(getKey())}`);
+      }catch(_){}
+      render(); updateTotals();
+      updateShareInAddressBar();
+      alert('Allt är nollställt.');
+    };
+
+    // ---- Mörkt läge ----
+    darkModeBtn.onclick = ()=>{
+      root.classList.toggle('dark');
+      const isDark = root.classList.contains('dark');
+      localStorage.setItem('budget_app_dark', isDark ? '1' : '0');
+      darkModeBtn.textContent = isDark ? 'Ljust läge' : 'Mörkt läge';
+    };
+
+    // GO
+    init();
+  })();
+  </script>
+</div>
+<!-- ======= /BUDGET-APP ======= -->
