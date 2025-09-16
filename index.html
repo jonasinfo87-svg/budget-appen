@@ -1,62 +1,119 @@
 <!-- ======= BUDGET-APP (FAST LÄNK MED key=, INGEN ID) ======= -->
 <div id="budgetApp">
   <style>
-    /* ===== PREMIUM TEMA (lite ljusare, clean) ===== */
+    /* =========================
+       PREMIUM THEME med Light/Dark
+       ========================= */
     #budgetApp{
-      /* Lättad bakgrund */
-      --bg:#11242b;      /* var #0e1b21 */
-      --bg2:#18343e;     /* var #152b33 */
-      --accent:#0d6c77;  
+      /* --- Light (default) theme tokens --- */
+      --bg:#f5fbfd;
+      --bg2:#e9f4f7;
+      --text:#073642;         /* text på tonad bakgrund */
+      --text-soft:#1c4a53;
+      --text-invert:#f3fcff;  /* text på hero/overlay */
+
+      --accent:#0d6c77;
       --muted:#88a8ad;
       --good:#1b8f4a;
       --bad:#d23b3b;
-      --card:#ffffff;
+
+      --card:#ffffff;         /* vita ytor (kort, tabell, inputs, knappar) */
+      --card-border:#d6e9eb;
+      --table-head:#0b5a64;
+
+      /* NYTT: textfärger för vita ytor (gäller i både ljust/mörkt) */
+      --card-text:#073642;
+      --card-text-soft:#24515a;
+
+      /* Mönster-intensitet (lätt att justera) */
+      --noise-o:.20;     /* brus */
+      --dots-o:.06;      /* prickar */
+      --waves-o:.07;     /* vågor */
 
       font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
-      color:#042b33;
+      color:var(--text);
       position:relative;
       min-height:100vh;
       overflow-x:hidden;
+
+      /* Grundtonad bakgrund */
       background:
-        radial-gradient(1200px 800px at 15% -10%, rgba(8, 90, 100,.16), transparent 60%),
-        radial-gradient(1100px 900px at 110% 110%, rgba(5, 55, 70,.14), transparent 62%),
-        radial-gradient(900px 700px at 50% 120%, rgba(19, 60, 70,.12), transparent 65%),
+        radial-gradient(1200px 800px at 15% -10%, rgba(8, 90, 100,.10), transparent 60%),
+        radial-gradient(1100px 900px at 110% 110%, rgba(5, 55, 70,.10), transparent 62%),
+        radial-gradient(900px 700px at 50% 120%, rgba(19, 60, 70,.09), transparent 65%),
         linear-gradient(180deg, var(--bg), var(--bg2));
       isolation:isolate;
+
+      transition: background .35s ease, color .2s ease, filter .2s ease;
     }
-    /* Subtilt brus – svagt för premiumkänsla */
+
+    /* --- Dark overrides --- */
+    #budgetApp.dark{
+      --bg:#11242b;
+      --bg2:#18343e;
+      --text:#eaf6f8;
+      --text-soft:#cfe6ea;
+      --text-invert:#eefbff;       /* ljus invert i mörkt läge */
+
+      --card:#ffffff;               /* behåll ljusa kort för läsbarhet */
+      --card-border:#cfe3e6;
+      --table-head:#08414e;
+
+      /* Viktigt: mörk text på vita ytor även i mörkt läge */
+      --card-text:#0b3b4c;
+      --card-text-soft:#2a5660;
+
+      --noise-o:.26;
+      --dots-o:.08;
+      --waves-o:.09;
+    }
+
+    /* Subtilt brus (premium-känsla) */
     #budgetApp::before{
       content:"";
       position:fixed; inset:-2px; z-index:0; pointer-events:none;
       background:url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'>\
-  <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0 0 .01 .02 .035 .03 .02 .01 0 0 0 0 0'/></feComponentTransfer></filter>\
+  <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0 0 .012 .025 .045 .032 .02 .012 0 0 0 0 0'/></feComponentTransfer></filter>\
   <rect width='100' height='100' filter='url(#n)'/>\
 </svg>") repeat;
-      opacity:.28; mix-blend-mode:soft-light;
+      opacity:var(--noise-o);
+      mix-blend-mode:soft-light;
+      transition:opacity .2s ease;
     }
-    /* Extra svagt mönster (diskreta prickar) */
+
+    /* Diskreta prickar + svaga vågor */
     #budgetApp::after{
       content:"";
       position:fixed; inset:0; z-index:0; pointer-events:none;
-      background-image:url("data:image/svg+xml;utf8,\
+      background-image:
+        /* vågor (mycket svaga, stora) */
+        url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='220' height='120' viewBox='0 0 220 120'>\
+  <path d='M0 60 Q55 40 110 60 T220 60' fill='none' stroke='%23ffffff' stroke-opacity='.35' stroke-width='1'/>\
+  <path d='M0 90 Q55 70 110 90 T220 90' fill='none' stroke='%23ffffff' stroke-opacity='.28' stroke-width='1'/>\
+</svg>"),
+        /* prickar */
+        url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>\
-  <circle cx='2' cy='2' r='1.2' fill='%23ffffff' opacity='.14'/>\
-  <circle cx='14' cy='10' r='1' fill='%23ffffff' opacity='.10'/>\
-  <circle cx='22' cy='4' r='0.9' fill='%23ffffff' opacity='.08'/>\
-  <circle cx='8' cy='18' r='1.1' fill='%23ffffff' opacity='.10'/>\
+  <circle cx='2' cy='2' r='1.2' fill='%23ffffff' opacity='.9'/>\
+  <circle cx='14' cy='10' r='1' fill='%23ffffff' opacity='.8'/>\
+  <circle cx='22' cy='4' r='0.9' fill='%23ffffff' opacity='.7'/>\
+  <circle cx='8' cy='18' r='1.1' fill='%23ffffff' opacity='.8'/>\
 </svg>");
-      background-repeat:repeat;
-      background-size:24px 24px;
-      opacity:.06;                /* nästan osynligt */
-      mix-blend-mode:overlay;     /* smälter in fint */
+      background-repeat:repeat, repeat;
+      background-size: 420px 240px, 24px 24px;
+      opacity:calc(var(--waves-o) + var(--dots-o));
+      mix-blend-mode:overlay;
+      transition:opacity .2s ease;
     }
 
     /* ===== LOGO / HEADER ===== */
     #budgetApp .site-header{
       position:fixed; top:14px; left:16px; z-index:10;
       display:flex; align-items:center; gap:10px;
-      color:#f3fcff; text-shadow:0 1px 2px rgba(0,0,0,.35);
+      color:var(--text-invert);
+      text-shadow:0 1px 2px rgba(0,0,0,.35);
       user-select:none;
     }
     #budgetApp .logo-badge{
@@ -72,43 +129,69 @@
     #budgetApp.locked .wrap{ display:none; }
 
     #budgetApp .wrap{max-width:1100px;margin:0 auto;padding:24px; z-index:1; position:relative;}
-    #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;}
+
+    /* ===== KONTROLLER ===== */
+    #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
     #budgetApp button{
-      background:var(--card); border:1px solid #cfe3e6; padding:8px 10px; border-radius:10px; cursor:pointer;
+      background:var(--card);
+      border:1px solid var(--card-border);
+      padding:8px 10px; border-radius:10px; cursor:pointer;
       box-shadow:0 1px 1px rgba(0,0,0,.04);
+      transition:transform .05s ease, box-shadow .15s ease;
+      color:var(--card-text);             /* <-- läsbar text på vit knapp */
     }
-    #budgetApp button.primary{background:#0d6c77;color:white;border:0}
+    #budgetApp button:active{ transform:translateY(1px); box-shadow:0 0 0 rgba(0,0,0,0); }
+    #budgetApp button.primary{background:var(--accent);color:white;border:0}
+    #budgetApp button[disabled]{ opacity:.55; cursor:not-allowed; }
     #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
-    #budgetApp .table-wrap{overflow:auto;background:var(--card); padding:8px; border-radius:12px; border:1px solid #d6e9eb;}
-    #budgetApp table{width:100%; border-collapse:collapse; min-width:860px; background:#fff; border-radius:10px; overflow:hidden;}
+
+    /* ===== TABELL/KORT ===== */
+    #budgetApp .table-wrap{
+      overflow:auto;background:var(--card); padding:8px; border-radius:12px; border:1px solid var(--card-border);
+      color:var(--card-text);             /* <-- text på vit yta */
+    }
+    #budgetApp table{
+      width:100%; border-collapse:collapse; min-width:860px; background:#fff; border-radius:10px; overflow:hidden;
+      color:var(--card-text);
+    }
     #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
-    #budgetApp th{background:#08414e;color:white; font-weight:700;} /* ljusare header */
+    #budgetApp th{background:var(--table-head);color:white; font-weight:700;}
+
+    /* Inputs/selects i tabellen/kort ska ha mörk text */
     #budgetApp td input[type="text"], 
     #budgetApp td input[type="number"], 
-    #budgetApp td select {width:100%; border:0; background:transparent; padding:6px; font-size:14px;}
+    #budgetApp td select {
+      width:100%; border:0; background:transparent; padding:6px; font-size:14px;
+      color:var(--card-text);             /* <-- viktigt i mörkt läge */
+    }
     #budgetApp td input::placeholder{ color:#86a6ab }
-
     #budgetApp .right{text-align:right;}
 
-    /* === KONTRASTFIX för små texter === */
-    /* SPECIFIKT: Delningslänk-labelen ska vara LJUS */
-    #budgetApp .live-link .small{
-      color:#f4fdff !important;
-      font-weight:700;
-      letter-spacing:.1px;
+    /* === Små texter / labels === */
+    #budgetApp .small{font-size:13px; color:var(--text-soft); font-weight:700;}
+    /* småtexter inuti ljusa ytor: använd card-nyanser */
+    #budgetApp .card .small,
+    #budgetApp .table-wrap .small,
+    #budgetApp .salary-box .small{ color:var(--card-text-soft) !important; }
+
+    /* Delningslänksetikett – ljus i mörkt läge */
+    #budgetApp .live-link .small{ color:var(--text-soft); text-shadow:none; }
+    #budgetApp.dark .live-link .small{
+      color:#eefbff !important;
       text-shadow:0 1px 2px rgba(0,0,0,.35);
     }
-    /* Små texter i kort/sektioner */
-    #budgetApp .small{font-size:13px; color:#0b3b4c; font-weight:600;}
-    /* Förklarande små texter på mörk bakgrund */
-    #budgetApp .live-note{font-size:12px; color:#eefbff;}
-    #cloudInfo{font-size:12px; color:#eefbff;}
+    #budgetApp .live-note{font-size:12px; color:#586e75;}
+    #budgetApp.dark .live-note{ color:#eefbff; }
+    #cloudInfo{font-size:12px; color:#586e75;}
+    #budgetApp.dark #cloudInfo{ color:#eefbff; }
 
     #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
     #budgetApp .card{
-      background:linear-gradient(180deg,#ffffff, #f7ffff); border-radius:14px; padding:12px; border:1px solid #d6e9eb; 
+      background:linear-gradient(180deg,#ffffff, #f7ffff);
+      border-radius:14px; padding:12px; border:1px solid var(--card-border); 
       box-shadow:0 10px 30px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.10);
       min-width:220px;
+      color:var(--card-text);             /* <-- text på kort */
     }
     #budgetApp .big{font-size:18px;font-weight:700;}
     #budgetApp .good{color:var(--good);} 
@@ -118,15 +201,17 @@
     #budgetApp .hint{font-size:13px;color:#e6f4f7;margin-top:10px}
 
     #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
-    /* SPECIFIKT: små rubriker i lönekortet – starkare */
-    #budgetApp .salary-box .small{ color:#073642; font-weight:700; }
-    #budgetApp .salary-box input{font-size:16px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; width:220px; background:#fff}
+    #budgetApp .salary-box input{
+      font-size:16px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; width:220px; background:#fff; color:var(--card-text);
+    }
+
     #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
     #budgetApp tr.dragging{opacity:0.6}
-    #budgetApp tr.drag-over{outline:2px dashed #0d6c77}
+    #budgetApp tr.drag-over{outline:2px dashed var(--accent)}
     #budgetApp .empty-row{color:#6b8a90; font-style:italic; text-align:center;}
     #budgetApp .empty-cell{padding:18px;}
 
+    /* Färgade brickor */
     #budgetApp .card.salary   { background:#eef5ff; border-color:#c6ddff; }
     #budgetApp .card.income   { background:#e6ffe6; border-color:#c2e9c2; }
     #budgetApp .card.expense  { background:#ffe6e6; border-color:#f1bcbc; }
@@ -134,17 +219,17 @@
     #budgetApp .card.balance,
     #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
 
-    #budgetApp details.helpbox { background:#ffffffcc; border:1px solid #d6e9eb; border-radius:12px; padding:12px; margin-top:10px; backdrop-filter: blur(4px); }
+    #budgetApp details.helpbox { background:#ffffffcc; border:1px solid var(--card-border); border-radius:12px; padding:12px; margin-top:10px; backdrop-filter: blur(4px); color:var(--card-text);}
     #budgetApp details.helpbox[open]{ background:#f7fbff; }
-    #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; }
+    #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; color:var(--card-text);}
     #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
-    #budgetApp .helpbox-content{ color:#2b4c52; font-size:14px; }
+    #budgetApp .helpbox-content{ color:var(--card-text); font-size:14px; }
 
     #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
-    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
+    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text)}
 
     #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
-    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
+    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text)}
 
     /* ===== LÅS-OVERLAY ===== */
     #budgetApp .lock-overlay{
@@ -152,7 +237,7 @@
       background:
         radial-gradient(1200px 800px at 20% 10%, rgba(13,108,119,.14), transparent 60%),
         radial-gradient(1000px 900px at 80% 90%, rgba(9,59,76,.16), transparent 65%),
-        rgba(10,25,30,.78); /* lite ljusare */
+        rgba(10,25,30,.78);
       display:flex; align-items:center; justify-content:center; z-index:99999;
       backdrop-filter: blur(6px);
       padding:32px;
@@ -165,6 +250,7 @@
       box-shadow:0 18px 60px rgba(0,0,0,.24);
       text-align:center;
       backdrop-filter: blur(8px);
+      color:#0b3b4c;
     }
     .brand{ display:flex; align-items:center; justify-content:center; gap:10px; margin:0 auto 10px; }
     .brand .brand-lock{ width:28px; height:28px; opacity:.9; }
@@ -173,7 +259,7 @@
       background:linear-gradient(135deg,#0b3b4c,#0d6c77);
       -webkit-background-clip:text; background-clip:text; color:transparent;
     }
-    #budgetApp .lock-card h3{margin:0 0 8px; font-size:26px; color:#0b3b4c; letter-spacing:.2px;}
+    #budgetApp .lock-card h3{margin:0 0 8px; font-size:26px; letter-spacing:.2px;}
     #budgetApp .lock-card p{margin:0 0 18px; font-size:16px; color:#1e3c42;}
 
     .pin-row{display:flex; gap:12px; margin:0 auto 16px; justify-content:center; max-width:360px;}
@@ -185,8 +271,9 @@
       font-size:24px; letter-spacing:3px; text-align:center;
       outline:none; background:#ffffff;
       transition:border-color .2s, box-shadow .2s, transform .1s;
+      color:#0b3b4c;
     }
-    .pin-input:focus{ border-color:#0d6c77; box-shadow:0 0 0 6px rgba(13,108,119,.12); }
+    .pin-input:focus{ border-color:var(--accent); box-shadow:0 0 0 6px rgba(13,108,119,.12); }
     .eye-btn{
       position:absolute; right:10px; top:50%; transform:translateY(-50%);
       border:0; background:transparent; cursor:pointer; padding:6px 8px; border-radius:8px;
@@ -195,8 +282,8 @@
     .eye-btn:hover{ opacity:1; }
     .lock-actions{display:flex; gap:10px; justify-content:center; margin-top:4px;}
     .lock-actions .primary{padding:12px 18px; font-size:16px; border-radius:10px;}
-    .lock-error{color:#d23b3b; font-size:14px; min-height:20px; margin-top:10px;}
 
+    .lock-error{color:#d23b3b; font-size:14px; min-height:20px; margin-top:10px;}
     @keyframes shake {10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
     .pin-error .pin-input { animation: shake .35s both; border-color:#d23b3b; }
 
@@ -215,7 +302,7 @@
       #budgetApp .wrap { padding: 14px; }
       #budgetApp table { font-size: 13px; min-width: 100%; }
       #budgetApp th, #budgetApp td { padding: 6px; }
-      #budgetApp .controls { flex-direction: column; gap: 6px; }
+      #budgetApp .controls { flex-direction: column; gap: 6px; align-items: stretch; }
       #budgetApp .controls button { width: 100%; }
       #budgetApp .salary-box { flex-direction: column; align-items: stretch; }
       #budgetApp .salary-box input { width: 100%; }
@@ -245,6 +332,9 @@
       <button id="shareImageBtn">Dela bild</button>
       <button id="resetBtn" class="danger" title="Nollställ allt till 0">Nollställ</button>
       <button id="darkModeBtn" title="Växla tema">Mörkt läge</button>
+      <label class="small" style="display:flex;gap:6px;align-items:center">
+        <input type="checkbox" id="autoThemeChk"> Följ system
+      </label>
       <button id="lockBtn" title="Lås nu">Lås</button>
     </div>
 
@@ -401,6 +491,8 @@
       const resetBtn        = root.querySelector('#resetBtn');
       const darkModeBtn     = root.querySelector('#darkModeBtn');
       const lockBtn         = root.querySelector('#lockBtn');
+
+      const autoThemeChk    = root.querySelector('#autoThemeChk');
 
       const liveLinkInput   = root.querySelector('#liveLink');
       const copyLiveLinkBtn = root.querySelector('#copyLiveLinkBtn');
@@ -560,6 +652,35 @@
         resetIdleTimer();
       }
 
+      // ===== Tema (ljus/mörk + auto) =====
+      const THEME_STORE = 'budget_app_dark';        // '1' för mörk, '0' för ljus
+      const THEME_AUTO  = 'budget_app_theme_auto';  // '1' = följ system
+      let mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
+      let mediaHandler = null;
+
+      function applyTheme(isDark){
+        root.classList.toggle('dark', !!isDark);
+        localStorage.setItem(THEME_STORE, isDark ? '1' : '0');
+        if(darkModeBtn) darkModeBtn.textContent = isDark ? 'Ljust läge' : 'Mörkt läge';
+      }
+      function applySystemThemeOnce(){
+        applyTheme(mediaDark.matches);
+      }
+      function enableAutoTheme(){
+        localStorage.setItem(THEME_AUTO, '1');
+        applySystemThemeOnce();
+        if(mediaHandler) mediaDark.removeEventListener('change', mediaHandler);
+        mediaHandler = (e)=> applyTheme(e.matches);
+        mediaDark.addEventListener('change', mediaHandler);
+        if(darkModeBtn){ darkModeBtn.disabled = true; darkModeBtn.title = 'Följ systemläge är på'; }
+      }
+      function disableAutoTheme(){
+        localStorage.removeItem(THEME_AUTO);
+        if(mediaHandler) mediaDark.removeEventListener('change', mediaHandler);
+        mediaHandler = null;
+        if(darkModeBtn){ darkModeBtn.disabled = false; darkModeBtn.title = 'Växla tema'; }
+      }
+
       // -------- INIT --------
       function init(){
         cloudIdInput.value = getKey();
@@ -583,11 +704,40 @@
           afterUnlock();
         }
 
-        // Dark mode toggle-status
-        if(localStorage.getItem('budget_app_dark')==='1'){
-          root.classList.add('dark');
-          if(darkModeBtn) darkModeBtn.textContent = 'Ljust läge';
+        // ===== Tema-init =====
+        const wasAuto = localStorage.getItem(THEME_AUTO) === '1';
+        if (autoThemeChk) autoThemeChk.checked = wasAuto;
+
+        if (wasAuto) {
+          enableAutoTheme();
+        } else {
+          // Ljust som standard första gången
+          const stored = localStorage.getItem(THEME_STORE);
+          if (stored === null) {
+            applyTheme(false); // ljus
+          } else {
+            applyTheme(stored === '1'); // återställ tidigare val
+          }
+          disableAutoTheme();
         }
+
+        // Lyssna på auto-bocken
+        if (autoThemeChk) {
+          autoThemeChk.addEventListener('change', () => {
+            if (autoThemeChk.checked) enableAutoTheme();
+            else {
+              disableAutoTheme();
+              // behåll aktuellt läge, men gör knappen aktiv igen
+            }
+          });
+        }
+
+        // Knapp för mörkt/ljust (endast aktiv när auto är av)
+        darkModeBtn.onclick = ()=>{
+          if (autoThemeChk && autoThemeChk.checked) return; // skydd
+          const isDark = !root.classList.contains('dark');
+          applyTheme(isDark);
+        };
 
         updateShareInAddressBar();
       }
@@ -978,14 +1128,6 @@
         render(); updateTotals();
         updateShareInAddressBar();
         alert('Allt är nollställt.');
-      };
-
-      // ---- Mörkt läge ----
-      darkModeBtn.onclick = ()=>{
-        root.classList.toggle('dark');
-        const isDark = root.classList.contains('dark');
-        localStorage.setItem('budget_app_dark', isDark ? '1' : '0');
-        darkModeBtn.textContent = isDark ? 'Ljust läge' : 'Mörkt läge';
       };
 
       // ---- Lås (manuellt) ----
