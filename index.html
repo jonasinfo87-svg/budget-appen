@@ -1,73 +1,101 @@
 <!-- ======= BUDGET-APP (FAST LÄNK MED key=, INGEN ID) ======= -->
 <div id="budgetApp">
-  <style>
-    #budgetApp :root{ --bg:#e9f6f8; --accent:#0b3b4c; --muted:#a0b7bb; --good:#1b8f4a; --bad:#d23b3b; --card:#ffffff; }
-    #budgetApp{font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial; color:#042b33;}
-    #budgetApp .wrap{max-width:1100px;margin:0 auto;padding:16px;}
-    #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
-    #budgetApp button{background:var(--card); border:1px solid #cfe3e6; padding:8px 10px; border-radius:8px; cursor:pointer;}
-    #budgetApp button.primary{background:#0d6c77;color:white;border:0}
-    #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
-    #budgetApp .table-wrap{overflow:auto;background:var(--card); padding:8px; border-radius:10px; border:1px solid #d6e9eb;}
-    #budgetApp table{width:100%; border-collapse:collapse; min-width:760px;}
-    #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
-    #budgetApp th{background:#07232b;color:white; font-weight:700;}
-    #budgetApp td input[type="text"], 
-    #budgetApp td input[type="number"], 
-    #budgetApp td select {width:100%; border:0; background:transparent; padding:6px; font-size:14px;}
-    #budgetApp .right{text-align:right;}
-    #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
-    #budgetApp .card{background:linear-gradient(180deg,#ffffff, #f7ffff); border-radius:10px; padding:10px; border:1px solid #d6e9eb; min-width:220px}
-    #budgetApp .big{font-size:18px;font-weight:700;}
-    #budgetApp .good{color:var(--good);} 
-    #budgetApp .bad{color:var(--bad);} 
-    #budgetApp .small{font-size:13px;color:#2b4c52;}
-    #budgetApp .row-actions{display:flex; gap:6px;}
-    #budgetApp .hint{font-size:13px;color:#2b4c52;margin-top:8px}
-    #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
-    #budgetApp .salary-box input{font-size:16px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; width:220px}
-    #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
-    #budgetApp tr.dragging{opacity:0.6}
-    #budgetApp tr.drag-over{outline:2px dashed #0d6c77}
-    #budgetApp .empty-row{color:#6b8a90; font-style:italic; text-align:center;}
-    #budgetApp .empty-cell{padding:18px;}
-    #budgetApp .card.salary   { background:#e6f1ff; border-color:#c6ddff; }
-    #budgetApp .card.income   { background:#e6ffe6; border-color:#c2e9c2; }
-    #budgetApp .card.expense  { background:#ffe6e6; border-color:#f1bcbc; }
-    #budgetApp .card.salaryLeft { background:#fff9e6; border-color:#f6e9b5; }
-    #budgetApp .card.balance,
-    #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
-    #budgetApp details.helpbox { background:#fff; border:1px solid #d6e9eb; border-radius:10px; padding:10px; margin-top:10px; }
-    #budgetApp details.helpbox[open]{ background:#f7fbff; }
-    #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; }
-    #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
-    #budgetApp .helpbox-content{ color:#2b4c52; font-size:14px; }
-    #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
-    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
-    #budgetApp .live-note{font-size:12px; color:#6b8a90}
-    #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
-    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
-    #cloudInfo{font-size:12px; color:#6b8a90}
-    #budgetApp.dark{ color:#f2f7f8; }
-    #budgetApp.dark .controls button,
-    #budgetApp.dark .table-wrap,
-    #budgetApp.dark .card{ background:#152a2e; border-color:#244248; color:#f2f7f8; }
-    #budgetApp.dark table{ background:#152a2e; }
-    #budgetApp.dark th{ background:#1c3b40; color:#ffffff; border-color:#244248; }
-    #budgetApp.dark td{ border-color:#244248; }
-    #budgetApp.dark input, 
-    #budgetApp.dark select{ color:#f2f7f8; }
-    #budgetApp.dark .hint,
-    #budgetApp.dark .helpbox-content{ color:#dbe7ea; }
-    #budgetApp.dark .card.salary{ background:#1b2b3a; }
-    #budgetApp.dark .card.income{ background:#193225; }
-    #budgetApp.dark .card.expense{ background:#3a1b1b; }
-    #budgetApp.dark .card.salaryLeft{ background:#2e2a1a; }
-    #budgetApp.dark .card.balance,
-    #budgetApp.dark .card.buffer{ background:#1a2933; }
-    #budgetApp.dark .live-link input[type=text]{ background:#1f3338; border-color:#244248; }
-    #budgetApp.dark #cloudControls input[type=text]{ background:#1f3338; border-color:#244248; }
-  </style>
+ <style>
+  /* ===== GRUND-CSS (utanför @media) ===== */
+  #budgetApp{
+    --bg:#e9f6f8;
+    --accent:#0b3b4c;
+    --muted:#a0b7bb;
+    --good:#1b8f4a;
+    --bad:#d23b3b;
+    --card:#ffffff;
+
+    font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
+    color:#042b33;
+  }
+
+  #budgetApp .wrap{max-width:1100px;margin:0 auto;padding:16px;}
+  #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+  #budgetApp button{background:var(--card); border:1px solid #cfe3e6; padding:8px 10px; border-radius:8px; cursor:pointer;}
+  #budgetApp button.primary{background:#0d6c77;color:white;border:0}
+  #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
+  #budgetApp .table-wrap{overflow:auto;background:var(--card); padding:8px; border-radius:10px; border:1px solid #d6e9eb;}
+  #budgetApp table{width:100%; border-collapse:collapse; min-width:760px;}
+  #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
+  #budgetApp th{background:#07232b;color:white; font-weight:700;}
+  #budgetApp td input[type="text"], 
+  #budgetApp td input[type="number"], 
+  #budgetApp td select {width:100%; border:0; background:transparent; padding:6px; font-size:14px;}
+  #budgetApp .right{text-align:right;}
+  #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
+  #budgetApp .card{background:linear-gradient(180deg,#ffffff, #f7ffff); border-radius:10px; padding:10px; border:1px solid #d6e9eb; min-width:220px}
+  #budgetApp .big{font-size:18px;font-weight:700;}
+  #budgetApp .good{color:var(--good);} 
+  #budgetApp .bad{color:var(--bad);} 
+  #budgetApp .small{font-size:13px;color:#2b4c52;}
+  #budgetApp .row-actions{display:flex; gap:6px;}
+  #budgetApp .hint{font-size:13px;color:#2b4c52;margin-top:8px}
+  #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
+  #budgetApp .salary-box input{font-size:16px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; width:220px}
+  #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
+  #budgetApp tr.dragging{opacity:0.6}
+  #budgetApp tr.drag-over{outline:2px dashed #0d6c77}
+  #budgetApp .empty-row{color:#6b8a90; font-style:italic; text-align:center;}
+  #budgetApp .empty-cell{padding:18px;}
+  #budgetApp .card.salary   { background:#e6f1ff; border-color:#c6ddff; }
+  #budgetApp .card.income   { background:#e6ffe6; border-color:#c2e9c2; }
+  #budgetApp .card.expense  { background:#ffe6e6; border-color:#f1bcbc; }
+  #budgetApp .card.salaryLeft { background:#fff9e6; border-color:#f6e9b5; }
+  #budgetApp .card.balance,
+  #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
+  #budgetApp details.helpbox { background:#fff; border:1px solid #d6e9eb; border-radius:10px; padding:10px; margin-top:10px; }
+  #budgetApp details.helpbox[open]{ background:#f7fbff; }
+  #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; }
+  #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
+  #budgetApp .helpbox-content{ color:#2b4c52; font-size:14px; }
+  #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
+  #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
+  #budgetApp .live-note{font-size:12px; color:#6b8a90}
+  #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
+  #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
+  #cloudInfo{font-size:12px; color:#6b8a90}
+  #budgetApp.dark{ color:#f2f7f8; }
+  #budgetApp.dark .controls button,
+  #budgetApp.dark .table-wrap,
+  #budgetApp.dark .card{ background:#152a2e; border-color:#244248; color:#f2f7f8; }
+  #budgetApp.dark table{ background:#152a2e; }
+  #budgetApp.dark th{ background:#1c3b40; color:#ffffff; border-color:#244248; }
+  #budgetApp.dark td{ border-color:#244248; }
+  #budgetApp.dark input, 
+  #budgetApp.dark select{ color:#f2f7f8; }
+  #budgetApp.dark .hint,
+  #budgetApp.dark .helpbox-content{ color:#dbe7ea; }
+  #budgetApp.dark .card.salary{ background:#1b2b3a; }
+  #budgetApp.dark .card.income{ background:#193225; }
+  #budgetApp.dark .card.expense{ background:#3a1b1b; }
+  #budgetApp.dark .card.salaryLeft{ background:#2e2a1a; }
+  #budgetApp.dark .card.balance,
+  #budgetApp.dark .card.buffer{ background:#1a2933; }
+  #budgetApp.dark .live-link input[type=text]{ background:#1f3338; border-color:#244248; }
+  #budgetApp.dark #cloudControls input[type=text]{ background:#1f3338; border-color:#244248; }
+
+  /* ===== MOBILANPASSNING – ligger sist så den vinner på små skärmar ===== */
+  @media (max-width: 600px) {
+    #budgetApp .wrap { padding: 8px; }
+    #budgetApp table { font-size: 13px; min-width: 100%; }
+    #budgetApp th, #budgetApp td { padding: 6px; }
+    #budgetApp .controls { flex-direction: column; gap: 6px; }
+    #budgetApp .controls button { width: 100%; }
+    #budgetApp .salary-box { flex-direction: column; align-items: stretch; }
+    #budgetApp .salary-box input { width: 100%; }
+    #budgetApp .sum-box { flex-direction: column; gap: 8px; width: 100%; }
+    #budgetApp .card { min-width: unset; width: 100%; }
+    #budgetApp .live-link { flex-direction: column; align-items: stretch; }
+    #budgetApp .live-link input { width: 100%; }
+    #cloudControls { flex-direction: column; align-items: stretch; }
+    #cloudControls input { width: 100%; }
+  }
+</style>
 
   <div class="wrap">
     <div class="controls">
@@ -155,23 +183,24 @@
     </div>
 
     <!-- Hjälp & förklaringar -->
-    <details class="helpbox>
-      <summary>
-        Hjälp & förklaringar
-        <span class="chev">▾</span>
-      </summary>
-      <div class="helpbox-content">
-        <p><strong>Så använder ni:</strong> Börja med att fylla i er månadslön, lägg sedan till rader för inkomster och utgifter. Ni kan flytta rader med ≡ eller ↑/↓.</p>
-        <ul>
-          <li><strong>Månadslön:</strong> Den totala lönen ni får in under månaden.</li>
-          <li><strong>Kvar av lönen (utan övriga inkomster):</strong> Hur mycket av lönen som återstår när utgifterna dragits – visar hur långt just lönen räcker.</li>
-          <li><strong>Totala inkomster (övriga):</strong> Alla inkomster utöver lönen, t.ex. barnbidrag, bostadsbidrag, extrajobb/sidoinkomst, ersättningar, återbetalningar eller stöd från familj.</li>
-          <li><strong>Totala utgifter:</strong> Summan av alla kostnader ni lagt in (hyra, el, försäkringar, mat, bensin, abonnemang, övriga räkningar).</li>
-          <li><strong>Saldo (inkl. lön + övriga inkomster):</strong> Slutresultat = lön + övriga inkomster − utgifter.</li>
-          <li><strong>Buffert:</strong> Visar hur mycket ni faktiskt kan spara undan denna månad.</li>
-        </ul>
-      </div>
-    </details>
+<details class="helpbox">
+  <summary>
+    Hjälp & förklaringar
+    <span class="chev">▾</span>
+  </summary>
+
+  <div class="helpbox-content">
+    <p><strong>Så använder ni:</strong> Börja med att fylla i er månadslön, lägg sedan till rader för inkomster och utgifter. Ni kan flytta rader med ≡ eller ↑/↓.</p>
+    <ul>
+      <li><strong>Månadslön:</strong> Den totala lönen ni får in under månaden.</li>
+      <li><strong>Kvar av lönen (utan övriga inkomster):</strong> Hur mycket av lönen som återstår när utgifterna dragits.</li>
+      <li><strong>Totala inkomster (övriga):</strong> Alla inkomster utöver lönen, t.ex. barnbidrag eller extrajobb.</li>
+      <li><strong>Totala utgifter:</strong> Summan av alla kostnader ni lagt in.</li>
+      <li><strong>Saldo:</strong> Lön + övriga inkomster − utgifter.</li>
+      <li><strong>Buffert:</strong> Hur mycket ni kan spara.</li>
+    </ul>
+  </div>
+</details>
 
     <div class="hint">
       Tips: Börja med lönen, lägg sen till rader. Flytta rader med ≡ eller ↑/↓.
