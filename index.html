@@ -222,6 +222,31 @@
       </table>
     </div>
 
+    <!-- Förslag till Anteckningar -->
+    <datalist id="noteCategories">
+      <option value="Livsmedel"></option>
+      <option value="Drivmedel"></option>
+      <option value="Hyra"></option>
+      <option value="Gästgivarevägen"></option>
+      <option value="Studievägen"></option>
+      <option value="DNB Finans"></option>
+      <option value="Abonnemang"></option>
+      <option value="Hus"></option>
+      <option value="Folksam"></option>
+      <option value="Försäkring"></option>
+      <option value="Sparande"></option>
+      <option value="Sjukhus"></option>
+      <option value="Räkningar"></option>
+      <option value="Lån"></option>
+      <option value="Telia tv sport"></option>
+      <option value="Telia"></option>
+      <option value="Fritid"></option>
+      <option value="Swedbank"></option>
+      <option value="Bank"></option>
+      <option value="Klarna"></option>
+      <option value="Övrigt"></option>
+    </datalist>
+
     <!-- Summor -->
     <div class="sum-box">
       <div class="card salary">
@@ -515,8 +540,8 @@
         tr.dataset.index = i;
         tr.innerHTML = `
           <td><span class="drag-handle" draggable="true" title="Dra för att flytta">≡</span></td>
-          <td><input type="text"   data-i="${i}" data-col="category" value="${escapeHtml(r.category)}"></td>
-          <td class="right"><input type="number" data-i="${i}" data-col="amount"   value="${r.amount}" step="1"></td>
+          <td><input type="text"   data-i="${i}" data-col="category" value="${escapeHtml(r.category)}" placeholder="Kategori"></td>
+          <td class="right"><input type="number" data-i="${i}" data-col="amount"   value="${r.amount}" step="1" placeholder="0" inputmode="decimal"></td>
           <td>
             <select data-i="${i}" data-col="type">
               <option ${r.type==='Utgift'?'selected':''}>Utgift</option>
@@ -532,7 +557,7 @@
               <option value="Annat" ${r.pay==='Annat'?'selected':''}>Annat</option>
             </select>
           </td>
-          <td><input type="text" data-i="${i}" data-col="note" value="${escapeHtml(r.note||'')}"></td>
+          <td><input type="text" data-i="${i}" data-col="note" value="${escapeHtml(r.note||'')}" list="noteCategories" placeholder="Anteckning eller välj kategori"></td>
           <td class="row-actions">
             <button data-action="up"   data-i="${i}" title="Flytta upp">↑</button>
             <button data-action="down" data-i="${i}" title="Flytta ner">↓</button>
@@ -551,13 +576,29 @@
     // -------- Händelser --------
     function attachEvents(){
       tbody.querySelectorAll('input, select').forEach(el=>{
+        // Spara ändringar
         el.onchange = ()=>{
           const i = +el.dataset.i;
           const col = el.dataset.col;
           if(col==='amount') rows[i][col] = Number(el.value) || 0; else rows[i][col] = el.value;
           render();
         };
+        // UX: ta bort start-0 när man börjar skriva i belopp
+        if(el.dataset.col === 'amount'){
+          el.onfocus = ()=>{
+            if(el.value === '0' || el.value === '') el.value = '';
+          };
+          el.onblur = ()=>{
+            if(el.value === '' || isNaN(Number(el.value))){ 
+              el.value = '0';
+              const i = +el.dataset.i;
+              rows[i].amount = 0;
+              updateTotals(); save();
+            }
+          };
+        }
       });
+
       tbody.querySelectorAll('button[data-action]').forEach(btn=>{
         btn.onclick = ()=>{
           const i = +btn.dataset.i;
