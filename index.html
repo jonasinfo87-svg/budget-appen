@@ -20,7 +20,7 @@
   #budgetApp button.primary{background:#0d6c77;color:white;border:0}
   #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
   #budgetApp .table-wrap{overflow:auto;background:var(--card); padding:8px; border-radius:10px; border:1px solid #d6e9eb;}
-  #budgetApp table{width:100%; border-collapse:collapse; min-width:760px;}
+  #budgetApp table{width:100%; border-collapse:collapse; min-width:860px;}
   #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
   #budgetApp th{background:#07232b;color:white; font-weight:700;}
   #budgetApp td input[type="text"], 
@@ -140,12 +140,13 @@
             <th style="width:260px">Kategori</th>
             <th style="width:140px">Belopp</th>
             <th style="width:120px">Typ</th>
+            <th style="width:150px">Betalsätt</th>
             <th>Anteckningar</th>
             <th style="width:140px">Åtgärd</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="6" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td></tr>
+          <tr><td colspan="7" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -306,7 +307,7 @@
       tbody.innerHTML = '';
       if(rows.length === 0){
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="6" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td>`;
+        tr.innerHTML = `<td colspan="7" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td>`;
         tbody.appendChild(tr);
         updateTotals(); save();
         return;
@@ -322,6 +323,14 @@
             <select data-i="${i}" data-col="type">
               <option ${r.type==='Utgift'?'selected':''}>Utgift</option>
               <option ${r.type==='Inkomst'?'selected':''}>Inkomst</option>
+            </select>
+          </td>
+          <td>
+            <select data-i="${i}" data-col="pay">
+              <option ${(!r.pay || r.pay==='Autogiro')?'selected':''} value="Autogiro">Autogiro</option>
+              <option ${r.pay==='E-faktura'?'selected':''} value="E-faktura">E-faktura</option>
+              <option ${r.pay==='Pappersfaktura'?'selected':''} value="Pappersfaktura">Pappersfaktura</option>
+              <option ${r.pay==='Annat'?'selected':''} value="Annat">Annat</option>
             </select>
           </td>
           <td><input type="text" data-i="${i}" data-col="note" value="${escapeHtml(r.note||'')}"></td>
@@ -395,7 +404,7 @@
 
     // Lägg till rad
     addRowBtn.onclick = ()=>{
-      rows.push({category:'', amount:0, type:'Utgift', note:''});
+      rows.push({category:'', amount:0, type:'Utgift', pay:'Autogiro', note:''});
       render();
       const lastInput = root.querySelector('#tbody tr:last-child td:nth-child(2) input');
       if(lastInput) lastInput.focus();
@@ -627,7 +636,13 @@
 
         const d = json.data;
         if(!d || !Array.isArray(d.rows)) throw new Error('Ogiltig data från servern');
-        rows = d.rows.map(r=>({ category:r.category||'', amount:Number(r.amount)||0, type:r.type||'Utgift', note:r.note||'' }));
+        rows = d.rows.map(r=>({
+          category:r.category||'',
+          amount:Number(r.amount)||0,
+          type:r.type||'Utgift',
+          pay:r.pay||'Autogiro',
+          note:r.note||''
+        }));
         salary = Number(d.salary)||0; salaryInput.value = salary || '';
         localStorage.setItem(STORAGE_SALARY_KEY, String(salary));
         render(); updateTotals();
