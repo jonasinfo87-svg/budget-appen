@@ -1,11 +1,12 @@
 <!-- ======= BUDGET-APP (FAST LÄNK MED key=, INGEN ID) ======= -->
 <div id="budgetApp">
   <style>
-    /* ===== PREMIUM TEMA (mörk, clean) ===== */
+    /* ===== PREMIUM TEMA (lite ljusare, clean) ===== */
     #budgetApp{
-      --bg:#0b1418;      /* djup grund */
-      --bg2:#0e1f25;     /* sekundär ton */
-      --accent:#0d6c77;  /* petrol */
+      /* Lättad bakgrund */
+      --bg:#11242b;      /* var #0e1b21 */
+      --bg2:#18343e;     /* var #152b33 */
+      --accent:#0d6c77;  
       --muted:#88a8ad;
       --good:#1b8f4a;
       --bad:#d23b3b;
@@ -17,29 +18,45 @@
       min-height:100vh;
       overflow-x:hidden;
       background:
-        radial-gradient(1200px 800px at 15% -10%, rgba(8, 90, 100,.22), transparent 60%),
-        radial-gradient(1100px 900px at 110% 110%, rgba(5, 55, 70,.20), transparent 62%),
-        radial-gradient(900px 700px at 50% 120%, rgba(19, 60, 70,.18), transparent 65%),
+        radial-gradient(1200px 800px at 15% -10%, rgba(8, 90, 100,.16), transparent 60%),
+        radial-gradient(1100px 900px at 110% 110%, rgba(5, 55, 70,.14), transparent 62%),
+        radial-gradient(900px 700px at 50% 120%, rgba(19, 60, 70,.12), transparent 65%),
         linear-gradient(180deg, var(--bg), var(--bg2));
       isolation:isolate;
     }
-    /* subtilt bruslager för premiumkänsla */
+    /* Subtilt brus – svagt för premiumkänsla */
     #budgetApp::before{
       content:"";
       position:fixed; inset:-2px; z-index:0; pointer-events:none;
       background:url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'>\
-  <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0 0 .018 .05 .08 .06 .04 .02 0 0 0 0 0'/></feComponentTransfer></filter>\
+  <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0 0 .01 .02 .035 .03 .02 .01 0 0 0 0 0'/></feComponentTransfer></filter>\
   <rect width='100' height='100' filter='url(#n)'/>\
 </svg>") repeat;
-      opacity:.55; mix-blend-mode:soft-light;
+      opacity:.28; mix-blend-mode:soft-light;
+    }
+    /* Extra svagt mönster (diskreta prickar) */
+    #budgetApp::after{
+      content:"";
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>\
+  <circle cx='2' cy='2' r='1.2' fill='%23ffffff' opacity='.14'/>\
+  <circle cx='14' cy='10' r='1' fill='%23ffffff' opacity='.10'/>\
+  <circle cx='22' cy='4' r='0.9' fill='%23ffffff' opacity='.08'/>\
+  <circle cx='8' cy='18' r='1.1' fill='%23ffffff' opacity='.10'/>\
+</svg>");
+      background-repeat:repeat;
+      background-size:24px 24px;
+      opacity:.06;                /* nästan osynligt */
+      mix-blend-mode:overlay;     /* smälter in fint */
     }
 
-    /* ===== LOGO / HEADER (uppe till vänster) ===== */
+    /* ===== LOGO / HEADER ===== */
     #budgetApp .site-header{
       position:fixed; top:14px; left:16px; z-index:10;
       display:flex; align-items:center; gap:10px;
-      color:#e9f6f8; text-shadow:0 1px 2px rgba(0,0,0,.35);
+      color:#f3fcff; text-shadow:0 1px 2px rgba(0,0,0,.35);
       user-select:none;
     }
     #budgetApp .logo-badge{
@@ -65,12 +82,28 @@
     #budgetApp .table-wrap{overflow:auto;background:var(--card); padding:8px; border-radius:12px; border:1px solid #d6e9eb;}
     #budgetApp table{width:100%; border-collapse:collapse; min-width:860px; background:#fff; border-radius:10px; overflow:hidden;}
     #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
-    #budgetApp th{background:#07232b;color:white; font-weight:700;}
+    #budgetApp th{background:#08414e;color:white; font-weight:700;} /* ljusare header */
     #budgetApp td input[type="text"], 
     #budgetApp td input[type="number"], 
     #budgetApp td select {width:100%; border:0; background:transparent; padding:6px; font-size:14px;}
-    #budgetApp td input::placeholder{ color:#8aa8ad }
+    #budgetApp td input::placeholder{ color:#86a6ab }
+
     #budgetApp .right{text-align:right;}
+
+    /* === KONTRASTFIX för små texter === */
+    /* SPECIFIKT: Delningslänk-labelen ska vara LJUS */
+    #budgetApp .live-link .small{
+      color:#f4fdff !important;
+      font-weight:700;
+      letter-spacing:.1px;
+      text-shadow:0 1px 2px rgba(0,0,0,.35);
+    }
+    /* Små texter i kort/sektioner */
+    #budgetApp .small{font-size:13px; color:#0b3b4c; font-weight:600;}
+    /* Förklarande små texter på mörk bakgrund */
+    #budgetApp .live-note{font-size:12px; color:#eefbff;}
+    #cloudInfo{font-size:12px; color:#eefbff;}
+
     #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
     #budgetApp .card{
       background:linear-gradient(180deg,#ffffff, #f7ffff); border-radius:14px; padding:12px; border:1px solid #d6e9eb; 
@@ -80,51 +113,56 @@
     #budgetApp .big{font-size:18px;font-weight:700;}
     #budgetApp .good{color:var(--good);} 
     #budgetApp .bad{color:var(--bad);} 
-    #budgetApp .small{font-size:13px;color:#2b4c52;}
+
     #budgetApp .row-actions{display:flex; gap:6px;}
-    #budgetApp .hint{font-size:13px;color:#d2e7ea;margin-top:10px}
+    #budgetApp .hint{font-size:13px;color:#e6f4f7;margin-top:10px}
+
     #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
+    /* SPECIFIKT: små rubriker i lönekortet – starkare */
+    #budgetApp .salary-box .small{ color:#073642; font-weight:700; }
     #budgetApp .salary-box input{font-size:16px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; width:220px; background:#fff}
     #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
     #budgetApp tr.dragging{opacity:0.6}
     #budgetApp tr.drag-over{outline:2px dashed #0d6c77}
     #budgetApp .empty-row{color:#6b8a90; font-style:italic; text-align:center;}
     #budgetApp .empty-cell{padding:18px;}
+
     #budgetApp .card.salary   { background:#eef5ff; border-color:#c6ddff; }
     #budgetApp .card.income   { background:#e6ffe6; border-color:#c2e9c2; }
     #budgetApp .card.expense  { background:#ffe6e6; border-color:#f1bcbc; }
     #budgetApp .card.salaryLeft { background:#fff9e6; border-color:#f6e9b5; }
     #budgetApp .card.balance,
     #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
+
     #budgetApp details.helpbox { background:#ffffffcc; border:1px solid #d6e9eb; border-radius:12px; padding:12px; margin-top:10px; backdrop-filter: blur(4px); }
     #budgetApp details.helpbox[open]{ background:#f7fbff; }
     #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; }
     #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
     #budgetApp .helpbox-content{ color:#2b4c52; font-size:14px; }
+
     #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
     #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
-    #budgetApp .live-note{font-size:12px; color:#d2e7ea}
+
     #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
     #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
-    #cloudInfo{font-size:12px; color:#d2e7ea}
 
-    /* ===== LÅS-OVERLAY (centrerad rubrik & text) ===== */
+    /* ===== LÅS-OVERLAY ===== */
     #budgetApp .lock-overlay{
       position:fixed; inset:0;
       background:
-        radial-gradient(1200px 800px at 20% 10%, rgba(13,108,119,.18), transparent 60%),
-        radial-gradient(1000px 900px at 80% 90%, rgba(9,59,76,.20), transparent 65%),
-        rgba(10,25,30,.82);
+        radial-gradient(1200px 800px at 20% 10%, rgba(13,108,119,.14), transparent 60%),
+        radial-gradient(1000px 900px at 80% 90%, rgba(9,59,76,.16), transparent 65%),
+        rgba(10,25,30,.78); /* lite ljusare */
       display:flex; align-items:center; justify-content:center; z-index:99999;
       backdrop-filter: blur(6px);
       padding:32px;
     }
     #budgetApp .lock-card{
-      background:rgba(255,255,255,.9);
-      border:1px solid rgba(214,233,235,.85);
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(214,233,235,.9);
       border-radius:22px; 
       padding:28px; width:100%; max-width:560px;
-      box-shadow:0 18px 60px rgba(0,0,0,.28);
+      box-shadow:0 18px 60px rgba(0,0,0,.24);
       text-align:center;
       backdrop-filter: blur(8px);
     }
@@ -136,7 +174,7 @@
       -webkit-background-clip:text; background-clip:text; color:transparent;
     }
     #budgetApp .lock-card h3{margin:0 0 8px; font-size:26px; color:#0b3b4c; letter-spacing:.2px;}
-    #budgetApp .lock-card p{margin:0 0 18px; font-size:16px; color:#2b4c52;}
+    #budgetApp .lock-card p{margin:0 0 18px; font-size:16px; color:#1e3c42;}
 
     .pin-row{display:flex; gap:12px; margin:0 auto 16px; justify-content:center; max-width:360px;}
     .pin-input-wrap{position:relative; flex:1;}
@@ -159,12 +197,7 @@
     .lock-actions .primary{padding:12px 18px; font-size:16px; border-radius:10px;}
     .lock-error{color:#d23b3b; font-size:14px; min-height:20px; margin-top:10px;}
 
-    @keyframes shake {
-      10%, 90% { transform: translateX(-2px); }
-      20%, 80% { transform: translateX(4px); }
-      30%, 50%, 70% { transform: translateX(-6px); }
-      40%, 60% { transform: translateX(6px); }
-    }
+    @keyframes shake {10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
     .pin-error .pin-input { animation: shake .35s both; border-color:#d23b3b; }
 
     /* Dark mode (låset) */
@@ -282,7 +315,6 @@
       <option value="Swedbank"></option>
       <option value="Bank"></option>
       <option value="Klarna"></option>
-      <option value="El"></option>
       <option value="Övrigt"></option>
     </datalist>
 
@@ -463,7 +495,6 @@
             </div>
             <div id="lockError" class="lock-error" aria-live="polite"></div>
           </div>`;
-        /* Viktigt: overlay inuti root så att scoping gäller */
         root.appendChild(lockOverlayEl);
 
         const pinInput  = lockOverlayEl.querySelector('#pinInput');
@@ -620,7 +651,6 @@
             if(col==='amount') rows[i][col] = Number(el.value) || 0; else rows[i][col] = el.value;
             render();
           };
-          // UX: ta bort start-0 när man börjar skriva i belopp
           if(el.dataset.col === 'amount'){
             el.onfocus = ()=>{
               if(el.value === '0' || el.value === '') el.value = '';
@@ -754,7 +784,7 @@
         bufferEl.classList.toggle('good', balance >= 0);
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
-        markActivity(); // aktivitet för autolås
+        markActivity();
       }
 
       // -------- Helpers --------
