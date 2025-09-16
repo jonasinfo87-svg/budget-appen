@@ -8,24 +8,25 @@
       /* --- Light (default) theme tokens --- */
       --bg:#f5fbfd;
       --bg2:#e9f4f7;
-      --text:#073642;         /* text på tonad bakgrund */
-      --text-soft:#1c4a53;
-      --text-invert:#f3fcff;  /* text på hero/overlay */
+
+      --text:#073642;        /* text på mörkare bakgrund */
+      --text-soft:#1c4a53;   /* svagare variant */
+      --text-invert:#f3fcff; /* text på "hero" / overlay */
 
       --accent:#0d6c77;
       --muted:#88a8ad;
       --good:#1b8f4a;
       --bad:#d23b3b;
 
-      --card:#ffffff;         /* vita ytor (kort, tabell, inputs, knappar) */
+      --card:#ffffff;           /* vita ytor (kort, tabell, kontroller) */
       --card-border:#d6e9eb;
       --table-head:#0b5a64;
 
-      /* NYTT: textfärger för vita ytor (gäller i både ljust/mörkt) */
+      /* text på vita ytor (säker läsbarhet i båda teman) */
       --card-text:#073642;
       --card-text-soft:#24515a;
 
-      /* Mönster-intensitet (lätt att justera) */
+      /* Mönster-intensitet */
       --noise-o:.20;     /* brus */
       --dots-o:.06;      /* prickar */
       --waves-o:.07;     /* vågor */
@@ -51,15 +52,16 @@
     #budgetApp.dark{
       --bg:#11242b;
       --bg2:#18343e;
-      --text:#eaf6f8;
-      --text-soft:#cfe6ea;
-      --text-invert:#eefbff;       /* ljus invert i mörkt läge */
 
-      --card:#ffffff;               /* behåll ljusa kort för läsbarhet */
+      --text:#eaf6f8;           /* text ovanpå den mörka bakgrunden */
+      --text-soft:#cfe6ea;
+      --text-invert:#eefbff;    /* “hero”-text, badges osv */
+
+      --card:#ffffff;           /* behåll ljusa kort för läsbarhet */
       --card-border:#cfe3e6;
       --table-head:#08414e;
 
-      /* Viktigt: mörk text på vita ytor även i mörkt läge */
+      /* mörk text på vita ytor även i dark */
       --card-text:#0b3b4c;
       --card-text-soft:#2a5660;
 
@@ -87,7 +89,7 @@
       content:"";
       position:fixed; inset:0; z-index:0; pointer-events:none;
       background-image:
-        /* vågor (mycket svaga, stora) */
+        /* vågor */
         url("data:image/svg+xml;utf8,\
 <svg xmlns='http://www.w3.org/2000/svg' width='220' height='120' viewBox='0 0 220 120'>\
   <path d='M0 60 Q55 40 110 60 T220 60' fill='none' stroke='%23ffffff' stroke-opacity='.35' stroke-width='1'/>\
@@ -130,51 +132,74 @@
 
     #budgetApp .wrap{max-width:1100px;margin:0 auto;padding:24px; z-index:1; position:relative;}
 
-    /* ===== KONTROLLER ===== */
+    /* ===== KONTROLLER / KNAPPAR ===== */
     #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
     #budgetApp button{
       background:var(--card);
+      color:var(--card-text);
       border:1px solid var(--card-border);
       padding:8px 10px; border-radius:10px; cursor:pointer;
       box-shadow:0 1px 1px rgba(0,0,0,.04);
       transition:transform .05s ease, box-shadow .15s ease;
-      color:var(--card-text);             /* <-- läsbar text på vit knapp */
+      /* Viktigt: knappar ska använda ljus forms-UI även i mörkt tema */
+      color-scheme: light;
     }
     #budgetApp button:active{ transform:translateY(1px); box-shadow:0 0 0 rgba(0,0,0,0); }
-    #budgetApp button.primary{background:var(--accent);color:white;border:0}
+    #budgetApp button.primary{background:var(--accent);color:#ffffff;border:0}
     #budgetApp button[disabled]{ opacity:.55; cursor:not-allowed; }
     #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
 
-    /* ===== TABELL/KORT ===== */
+    /* ===== TABELL / KORT ===== */
     #budgetApp .table-wrap{
       overflow:auto;background:var(--card); padding:8px; border-radius:12px; border:1px solid var(--card-border);
-      color:var(--card-text);             /* <-- text på vit yta */
-    }
-    #budgetApp table{
-      width:100%; border-collapse:collapse; min-width:860px; background:#fff; border-radius:10px; overflow:hidden;
       color:var(--card-text);
+      color-scheme: light; /* tvinga ljus kontroll-UI */
     }
+    #budgetApp table{width:100%; border-collapse:collapse; min-width:860px; background:#fff; border-radius:10px; overflow:hidden; color:var(--card-text);}
     #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
-    #budgetApp th{background:var(--table-head);color:white; font-weight:700;}
+    #budgetApp th{background:var(--table-head);color:#ffffff; font-weight:700;}
 
-    /* Inputs/selects i tabellen/kort ska ha mörk text */
+    /* Inputs/selects inne i tabellen/kort ska ha mörk text */
     #budgetApp td input[type="text"], 
     #budgetApp td input[type="number"], 
     #budgetApp td select {
       width:100%; border:0; background:transparent; padding:6px; font-size:14px;
-      color:var(--card-text);             /* <-- viktigt i mörkt läge */
+      color:var(--card-text);
+      color-scheme: light; /* förhindra "auto-dark" rendering */
     }
     #budgetApp td input::placeholder{ color:#86a6ab }
     #budgetApp .right{text-align:right;}
 
-    /* === Små texter / labels === */
+    /* ===== UNIVERSAL FORMS-FIXAR (autofill, option-menyer, mm) ===== */
+    #budgetApp input,
+    #budgetApp select,
+    #budgetApp textarea{
+      color:var(--card-text) !important;
+      background-color:#fff;
+      color-scheme: light;
+    }
+    #budgetApp input:-webkit-autofill,
+    #budgetApp select:-webkit-autofill,
+    #budgetApp textarea:-webkit-autofill{
+      -webkit-text-fill-color:var(--card-text) !important;
+      caret-color:var(--card-text);
+      box-shadow:0 0 0 1000px #ffffff inset; /* ta bort grön/gul bakgrund */
+    }
+    #budgetApp select option{
+      color:var(--card-text);
+      background:#fff;
+    }
+
+    /* ===== TYPOGRAFI SMÅ TEXTER ===== */
     #budgetApp .small{font-size:13px; color:var(--text-soft); font-weight:700;}
-    /* småtexter inuti ljusa ytor: använd card-nyanser */
+    /* småtexter på vita ytor ska använda card-nyanser */
     #budgetApp .card .small,
     #budgetApp .table-wrap .small,
-    #budgetApp .salary-box .small{ color:var(--card-text-soft) !important; }
+    #budgetApp .salary-box .small,
+    #budgetApp .live-link .small,
+    #cloudControls .small{ color:var(--card-text-soft) !important; }
 
-    /* Delningslänksetikett – ljus i mörkt läge */
+    /* Delningslänk-etikett – normal i ljust, ljus i mörkt */
     #budgetApp .live-link .small{ color:var(--text-soft); text-shadow:none; }
     #budgetApp.dark .live-link .small{
       color:#eefbff !important;
@@ -185,13 +210,15 @@
     #cloudInfo{font-size:12px; color:#586e75;}
     #budgetApp.dark #cloudInfo{ color:#eefbff; }
 
+    /* ===== KORT / SUM-BRICKOR ===== */
     #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
     #budgetApp .card{
       background:linear-gradient(180deg,#ffffff, #f7ffff);
+      color:var(--card-text);
       border-radius:14px; padding:12px; border:1px solid var(--card-border); 
       box-shadow:0 10px 30px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.10);
       min-width:220px;
-      color:var(--card-text);             /* <-- text på kort */
+      color-scheme: light;
     }
     #budgetApp .big{font-size:18px;font-weight:700;}
     #budgetApp .good{color:var(--good);} 
@@ -200,11 +227,14 @@
     #budgetApp .row-actions{display:flex; gap:6px;}
     #budgetApp .hint{font-size:13px;color:#e6f4f7;margin-top:10px}
 
+    /* ===== LÖNERAD ===== */
     #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
     #budgetApp .salary-box input{
       font-size:16px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; width:220px; background:#fff; color:var(--card-text);
+      color-scheme: light;
     }
 
+    /* Drag & drop */
     #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
     #budgetApp tr.dragging{opacity:0.6}
     #budgetApp tr.drag-over{outline:2px dashed var(--accent)}
@@ -219,17 +249,18 @@
     #budgetApp .card.balance,
     #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
 
+    /* Hjälpbox */
     #budgetApp details.helpbox { background:#ffffffcc; border:1px solid var(--card-border); border-radius:12px; padding:12px; margin-top:10px; backdrop-filter: blur(4px); color:var(--card-text);}
     #budgetApp details.helpbox[open]{ background:#f7fbff; }
     #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; color:var(--card-text);}
     #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
     #budgetApp .helpbox-content{ color:var(--card-text); font-size:14px; }
 
+    /* Delningslänk & moln inputs */
     #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
-    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text)}
-
+    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text); color-scheme: light;}
     #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
-    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text)}
+    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text); color-scheme: light;}
 
     /* ===== LÅS-OVERLAY ===== */
     #budgetApp .lock-overlay{
@@ -241,6 +272,7 @@
       display:flex; align-items:center; justify-content:center; z-index:99999;
       backdrop-filter: blur(6px);
       padding:32px;
+      color:#0b3b4c;
     }
     #budgetApp .lock-card{
       background:rgba(255,255,255,.94);
@@ -269,9 +301,8 @@
       padding:16px 54px 16px 16px;
       border:2px solid #cfe3e6; border-radius:14px; 
       font-size:24px; letter-spacing:3px; text-align:center;
-      outline:none; background:#ffffff;
+      outline:none; background:#ffffff; color:#0b3b4c;
       transition:border-color .2s, box-shadow .2s, transform .1s;
-      color:#0b3b4c;
     }
     .pin-input:focus{ border-color:var(--accent); box-shadow:0 0 0 6px rgba(13,108,119,.12); }
     .eye-btn{
@@ -404,6 +435,7 @@
       <option value="Fritid"></option>
       <option value="Swedbank"></option>
       <option value="Bank"></option>
+      <option value="El"></option>
       <option value="Klarna"></option>
       <option value="Övrigt"></option>
     </datalist>
@@ -472,8 +504,8 @@
       /* ===== LÅS-KONFIG ===== */
       const LOCK = {
         enabled: true,
-        pin: '8987',                 // PIN på klientsidan
-        timeoutMs: 60 * 60 * 1000    // 60 minuter
+        pin: '8987',
+        timeoutMs: 60 * 60 * 1000
       };
 
       // ===== KONFIG: Apps Script =====
@@ -491,7 +523,6 @@
       const resetBtn        = root.querySelector('#resetBtn');
       const darkModeBtn     = root.querySelector('#darkModeBtn');
       const lockBtn         = root.querySelector('#lockBtn');
-
       const autoThemeChk    = root.querySelector('#autoThemeChk');
 
       const liveLinkInput   = root.querySelector('#liveLink');
@@ -711,7 +742,7 @@
         if (wasAuto) {
           enableAutoTheme();
         } else {
-          // Ljust som standard första gången
+          // Ljus läge som standard första gången
           const stored = localStorage.getItem(THEME_STORE);
           if (stored === null) {
             applyTheme(false); // ljus
@@ -993,7 +1024,7 @@
         try{
           const url = (typeof src === 'string') ? src : URL.createObjectURL(src);
           const win = window.open(url, '_blank');
-          if(!win){ alert('Popup blockerad. Tillåt popups eller prova igen.'); }
+        if(!win){ alert('Popup blockerad. Tillåt popups eller prova igen.'); }
           if(typeof src !== 'string'){ setTimeout(()=> URL.revokeObjectURL(url), 5000); }
           return true;
         }catch(_){ return false; }
