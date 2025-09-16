@@ -63,46 +63,86 @@
   #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid #cfe3e6; border-radius:8px; background:#fff}
   #cloudInfo{font-size:12px; color:#6b8a90}
 
-  /* ===== LOCK OVERLAY ===== */
+  /* ===== PREMIUM LOCK OVERLAY ===== */
   #budgetApp .lock-overlay{
-    position:fixed; inset:0; background:rgba(10,25,30,.8);
+    position:fixed; inset:0;
+    background:
+      radial-gradient(1200px 800px at 20% 10%, rgba(13,108,119,.18), transparent 60%),
+      radial-gradient(1000px 900px at 80% 90%, rgba(9,59,76,.20), transparent 65%),
+      rgba(10,25,30,.82);
     display:flex; align-items:center; justify-content:center; z-index:99999;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(6px);
+    padding:32px;
   }
   #budgetApp .lock-card{
-    background:#ffffff; border:1px solid #d6e9eb; border-radius:14px; padding:18px; width:100%; max-width:340px;
-    box-shadow:0 10px 30px rgba(0,0,0,.2);
+    background:rgba(255,255,255,.9);
+    border:1px solid rgba(214,233,235,.85);
+    border-radius:22px; 
+    padding:28px; width:100%; max-width:560px;
+    box-shadow:0 18px 60px rgba(0,0,0,.28);
+    text-align:center;
+    backdrop-filter: blur(8px);
   }
-  #budgetApp .lock-card h3{margin:0 0 6px; font-size:18px; color:#0b3b4c;}
-  #budgetApp .lock-card p{margin:0 0 12px; font-size:14px; color:#2b4c52;}
-  #budgetApp .pin-row{display:flex; gap:8px; margin-bottom:10px;}
-  #budgetApp .pin-row input{
-    flex:1; padding:10px; border:1px solid #cfe3e6; border-radius:10px; font-size:16px; letter-spacing:2px;
-  }
-  #budgetApp .lock-actions{display:flex; gap:8px; justify-content:flex-end;}
-  #budgetApp .lock-error{color:#d23b3b; font-size:13px; min-height:18px; margin-top:6px;}
 
-  /* Dark mode */
-  #budgetApp.dark{ color:#f2f7f8; }
-  #budgetApp.dark .controls button,
-  #budgetApp.dark .table-wrap,
-  #budgetApp.dark .card{ background:#152a2e; border-color:#244248; color:#f2f7f8; }
-  #budgetApp.dark table{ background:#152a2e; }
-  #budgetApp.dark th{ background:#1c3b40; color:#ffffff; border-color:#244248; }
-  #budgetApp.dark td{ border-color:#244248; }
-  #budgetApp.dark input, 
-  #budgetApp.dark select{ color:#f2f7f8; }
-  #budgetApp.dark .hint,
-  #budgetApp.dark .helpbox-content{ color:#dbe7ea; }
-  #budgetApp.dark .card.salary{ background:#1b2b3a; }
-  #budgetApp.dark .card.income{ background:#193225; }
-  #budgetApp.dark .card.expense{ background:#3a1b1b; }
-  #budgetApp.dark .card.salaryLeft{ background:#2e2a1a; }
-  #budgetApp.dark .card.balance,
-  #budgetApp.dark .card.buffer{ background:#1a2933; }
-  #budgetApp.dark .live-link input[type=text]{ background:#1f3338; border-color:#244248; }
-  #budgetApp.dark #cloudControls input[type=text]{ background:#1f3338; border-color:#244248; }
-  #budgetApp.dark .lock-card{ background:#1a2933; border-color:#244248; color:#f2f7f8;}
+  /* Brand-rad: Budgetmall + lås */
+  .brand{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin:2px auto 14px;
+  }
+  .brand .brand-lock{ width:28px; height:28px; opacity:.9; }
+  .brand .brand-text{
+    font-weight:800; font-size:20px; letter-spacing:.3px;
+    background:linear-gradient(135deg,#0b3b4c,#0d6c77);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  #budgetApp .lock-card h3{margin:0 0 6px; font-size:24px; color:#0b3b4c; letter-spacing:.2px;}
+  #budgetApp .lock-card p{margin:0 0 18px; font-size:15px; color:#2b4c52;}
+
+  .pin-row{display:flex; gap:12px; margin:0 auto 16px; justify-content:center; max-width:360px;}
+  .pin-input-wrap{position:relative; flex:1;}
+  .pin-input{
+    width:100%;
+    padding:16px 54px 16px 16px;
+    border:2px solid #cfe3e6; border-radius:14px; 
+    font-size:24px; letter-spacing:3px; text-align:center;
+    outline:none; background:#ffffff;
+    transition:border-color .2s, box-shadow .2s, transform .1s;
+  }
+  .pin-input:focus{ border-color:#0d6c77; box-shadow:0 0 0 6px rgba(13,108,119,.12); }
+
+  .eye-btn{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    border:0; background:transparent; cursor:pointer; padding:6px 8px; border-radius:8px;
+    color:#0b3b4c; opacity:.8;
+  }
+  .eye-btn:hover{ opacity:1; }
+
+  .lock-actions{display:flex; gap:10px; justify-content:center; margin-top:4px;}
+  .lock-actions .primary{padding:12px 18px; font-size:16px; border-radius:10px;}
+  .lock-error{color:#d23b3b; font-size:14px; min-height:20px; margin-top:10px;}
+
+  /* Shake vid fel PIN */
+  @keyframes shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+  }
+  .pin-error .pin-input { animation: shake .35s both; border-color:#d23b3b; }
+
+  /* Dark mode (premium lock) */
+  #budgetApp.dark .lock-card{
+    background:rgba(26,41,51,.88);
+    border-color:#244248; color:#f2f7f8;
+  }
+  #budgetApp.dark .pin-input{ background:#1f3338; color:#f2f7f8; border-color:#244248; }
+  #budgetApp.dark .pin-input:focus{ border-color:#7ec9d3; box-shadow:0 0 0 6px rgba(126,201,211,.15); }
+  #budgetApp.dark .eye-btn{ color:#dbe7ea; }
+  #budgetApp.dark .brand .brand-text{
+    background:linear-gradient(135deg,#e6f7ff,#7ec9d3);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
 
   /* ===== MOBIL ===== */
   @media (max-width: 600px) {
@@ -119,6 +159,10 @@
     #budgetApp .live-link input { width: 100%; }
     #cloudControls { flex-direction: column; align-items: stretch; }
     #cloudControls input { width: 100%; }
+
+    /* större PIN även på mobil */
+    .pin-row{ max-width: none; }
+    .pin-input{ font-size:22px; }
   }
  </style>
 
@@ -334,10 +378,21 @@
       lockOverlayEl.className = 'lock-overlay';
       lockOverlayEl.innerHTML = `
         <div class="lock-card" role="dialog" aria-modal="true" aria-label="Lås upp">
+          <div class="brand">
+            <svg class="brand-lock" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 10V7a5 5 0 1 1 10 0v3" stroke="#0b3b4c" stroke-width="1.7" stroke-linecap="round"/>
+              <rect x="4" y="10" width="16" height="10" rx="2.7" stroke="#0b3b4c" stroke-width="1.7"/>
+              <circle cx="12" cy="15" r="1.6" fill="#0b3b4c"/>
+            </svg>
+            <div class="brand-text">Budgetmall</div>
+          </div>
           <h3>Skyddad budget</h3>
-          <p>Mata in PIN-kod för att komma in.</p>
+          <p>Skriv din PIN-kod för att låsa upp.</p>
           <div class="pin-row">
-            <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="PIN (t.ex. 8987)" aria-label="PIN-kod">
+            <div class="pin-input-wrap" id="pinWrap">
+              <input id="pinInput" class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="••••" aria-label="PIN-kod">
+              <button class="eye-btn" id="togglePin" aria-label="Visa/dölj PIN">👁️</button>
+            </div>
           </div>
           <div class="lock-actions">
             <button id="unlockBtn" class="primary">Lås upp</button>
@@ -345,9 +400,11 @@
           <div id="lockError" class="lock-error" aria-live="polite"></div>
         </div>`;
       document.body.appendChild(lockOverlayEl);
-      const pinInput = lockOverlayEl.querySelector('#pinInput');
+      const pinInput  = lockOverlayEl.querySelector('#pinInput');
       const unlockBtn = lockOverlayEl.querySelector('#unlockBtn');
       const lockError = lockOverlayEl.querySelector('#lockError');
+      const pinWrap   = lockOverlayEl.querySelector('#pinWrap');
+      const togglePin = lockOverlayEl.querySelector('#togglePin');
 
       function tryUnlock(){
         const val = (pinInput.value||'').trim();
@@ -357,10 +414,19 @@
           afterUnlock();
         }else{
           lockError.textContent = 'Fel PIN. Försök igen.';
+          pinWrap.classList.remove('pin-error'); 
+          void pinWrap.offsetWidth;              
+          pinWrap.classList.add('pin-error');    
           pinInput.focus();
           pinInput.select();
         }
       }
+      function toggleVisibility(){
+        pinInput.type = (pinInput.type === 'password') ? 'text' : 'password';
+        pinInput.focus();
+      }
+
+      togglePin.addEventListener('click', toggleVisibility);
       unlockBtn.addEventListener('click', tryUnlock);
       pinInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') tryUnlock(); });
       setTimeout(()=> pinInput.focus(), 0);
@@ -387,7 +453,6 @@
       }, LOCK.timeoutMs);
     }
     function markActivity(){
-      // Ignorera aktivitet om låst (ska fortsätta vara låst)
       if(root.classList.contains('locked')) return;
       if(!LOCK.enabled) return;
       setUnlockTs(now());
@@ -419,9 +484,9 @@
 
       // Lås direkt vid laddning om nödvändigt
       if(needLock()){
-        showLockOverlay();              // sidan göms tills rätt PIN
+        showLockOverlay();
       }else{
-        afterUnlock();                  // redan inom tidsfönster
+        afterUnlock();
       }
 
       // Dark mode
@@ -538,6 +603,7 @@
 
     // Lägg till rad
     addRowBtn.onclick = ()=>{
+      // Viktigt: pay:'' gör att '-' blir valt på nya rader
       rows.push({category:'', amount:0, type:'Utgift', pay:'', note:''});
       render();
       const lastInput = root.querySelector('#tbody tr:last-child td:nth-child(2) input');
