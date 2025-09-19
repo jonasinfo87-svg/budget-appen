@@ -34,7 +34,8 @@
     button.primary{background:var(--accent);color:#fff;border:0}
     .danger{background:#ffd7d7;border:1px solid #f1bcbc}
 
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px; align-items:center}
+    /* Toolbar + chips */
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px;align-items:center}
     .chip{
       display:inline-flex;align-items:center;gap:8px;
       padding:6px 10px;border-radius:999px;border:1px solid var(--card-border);
@@ -45,18 +46,34 @@
     .chip .edit, .chip .handle, .chip .mv{
       font-weight:700; opacity:.7; cursor:pointer; padding:0 4px; border-radius:6px;
     }
-    .chip .edit:hover, .chip .handle:hover, .chip .mv:hover{ background:#f1f5f6 }
     .chip .handle{ cursor:grab }
     .chip.dragging{ opacity:.35 }
-    .chip.placeholder{
-      border:2px dashed var(--card-border);
-      background:transparent;
-      cursor:default;
-    }
-    /* sorteringsläge: visa pilar */
+    .chip.placeholder{ border:2px dashed var(--card-border); background:transparent; cursor:default; padding:6px 12px }
+
+    /* Sortläge: visa pilar */
     .chips.sort-mode .mv{ display:inline-block }
     .mv{ display:none }
     #sortChipsBtn.active{ background:#e7f6f8; border-color:#bfe5ea }
+
+    /* Sektioner */
+    .chip-sections{ display:grid; gap:12px; }
+    .chip-section{
+      background:#fff; border:1px solid var(--card-border); border-radius:12px;
+      padding:10px;
+    }
+    .chip-section .sec-head{
+      display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    }
+    .chip-section .sec-head h4{
+      margin:0; font-size:14px; font-weight:800; color:#24515a;
+    }
+    .chip-section .sec-head .sec-tools{ margin-left:auto; display:flex; gap:6px; }
+    .chip-bin{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:40px;
+    }
+    .chip-bin.empty::after{
+      content:'Släpp snabbknappar här'; color:#86a6ab; font-size:13px;
+    }
 
     .salary-box{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
     .salary-box input{font-size:16px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;width:220px;min-height:44px;background:#fff;color:var(--card-text)}
@@ -82,7 +99,7 @@
     td select{
       width:100%; box-sizing:border-box;
       border:1px solid var(--card-border);
-      background:#fff; color:#card-text;
+      background:#fff; color:#073642;
       border-radius:10px; padding:10px 12px;
       font-size:16px; line-height:1.25; min-height:44px;
       appearance:none;
@@ -120,7 +137,7 @@
     .hint{font-size:12px;color:#777}
 
     .live-link{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
-    .live-link input{flex:1;min-width:260px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:#fff;color:var(--card-text);min-height:44px}
+    .live-link input{flex:1;min-width:260px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:#fff;color:#073642;min-height:44px}
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100001}
     .modal.open{display:flex}
@@ -151,11 +168,14 @@
       <button id="clearMemBtn">Nollställ minne</button>
     </div>
 
-    <!-- Snabbknappar -->
+    <!-- Snabbknappar: toolbar -->
     <div class="chips" id="chips">
       <button id="addChipBtn" title="Lägg till snabbknapp">+ Lägg till snabbknapp</button>
-      <button id="sortChipsBtn" title="Aktivera sortering (dra & släpp eller pilar)">Sortera</button>
+      <button id="sortChipsBtn" title="Aktivera sortering (pilar)">Sortera</button>
+      <button id="addSectionBtn" title="Skapa ny sektion för snabbknappar">+ Ny sektion</button>
     </div>
+    <!-- Sektioner för placering -->
+    <div class="chip-sections" id="chipSections"></div>
 
     <!-- Delningslänk -->
     <div class="live-link">
@@ -276,6 +296,10 @@
             <option>Annat</option>
           </select>
         </div>
+        <div>
+          <label>Sektion</label>
+          <select id="mSection"></select>
+        </div>
         <div class="full">
           <div class="row">
             <label style="margin:0">Anteckningar</label>
@@ -311,10 +335,11 @@
       return k;
     }
     function cloudKey(){ return 'budget_' + getKey(); }
-    const LS_ROWS   = ()=>`budget_rows_v2_${getKey()}`;
-    const LS_SALARY = ()=>`budget_salary_v2_${getKey()}`;
-    const LS_MEMCAT = ()=>`budget_cat_memory_v2_${getKey()}`;
-    const LS_QUICK  = ()=>`budget_quick_items_v2_${getKey()}`;
+    const LS_ROWS    = ()=>`budget_rows_v2_${getKey()}`;
+    const LS_SALARY  = ()=>`budget_salary_v2_${getKey()}`;
+    const LS_MEMCAT  = ()=>`budget_cat_memory_v2_${getKey()}`;
+    const LS_QUICK   = ()=>`budget_quick_items_v2_${getKey()}`;      // snabbknappar
+    const LS_SECTS   = ()=>`budget_quick_sections_v1_${getKey()}`;   // sektioner
 
     function cloudEnabled(){ return !!CLOUD.endpoint && !!cloudKey(); }
     function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
@@ -333,6 +358,8 @@
     const chipsWrap = document.getElementById('chips');
     const addChipBtn = document.getElementById('addChipBtn');
     const sortChipsBtn = document.getElementById('sortChipsBtn');
+    const addSectionBtn = document.getElementById('addSectionBtn');
+    const chipSections = document.getElementById('chipSections');
 
     const totalIncomeEl   = document.getElementById('totalIncome');
     const totalExpenseEl  = document.getElementById('totalExpense');
@@ -351,16 +378,16 @@
 
     /* Modal */
     const chipModal = document.getElementById('chipModal');
+    const chipTitle = document.getElementById('chipTitle');
     const mLabel = document.getElementById('mLabel');
     const mAmount = document.getElementById('mAmount');
     const mType = document.getElementById('mType');
-    the_mPay = document.getElementById('mPay'); // keep name distinct to avoid accidental shadowing
-    const mPay = the_mPay;
+    const mPay = document.getElementById('mPay');
+    const mSection = document.getElementById('mSection');
     const mNote = document.getElementById('mNote');
     const mMirror = document.getElementById('mMirror');
     const mCancel = document.getElementById('mCancel');
     const mSave = document.getElementById('mSave');
-    const chipTitle = document.getElementById('chipTitle');
 
     /* ====== DATA ====== */
     let rows = [];
@@ -428,29 +455,47 @@
     function clearCategoryMemory(){ localStorage.removeItem(LS_MEMCAT()); loadCategoryMemory(); }
     clearMemBtn.onclick = ()=>{ if(confirm('Rensa endast kategori-minnet? (påverkar inte dina rader)')) clearCategoryMemory(); };
 
+    /* ====== SEKTIONER ====== */
+    function uid(){ return 'sec_' + Math.random().toString(36).slice(2,9); }
+    function loadSections(){
+      let secs=[]; try{ secs = JSON.parse(localStorage.getItem(LS_SECTS())||'[]'); }catch(_){}
+      if(!Array.isArray(secs)) secs=[];
+      if(secs.length===0){ secs=[{id:'sec_default', name:'Snabbknappar'}]; localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
+      return secs;
+    }
+    function saveSections(secs){ localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
+    function ensureSectionOptions(selectEl){
+      const secs = loadSections();
+      selectEl.innerHTML = secs.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    }
+
     /* ====== CHIP-MODAL (ny + redigera) ====== */
-    let editingChipIndex = -1; // -1 = ny
-    function openChipModal(idx){
+    let editingChipAbs = -1; // absolut index i listan, -1 = ny
+    function openChipModal(absIndex){
       const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      editingChipIndex = (typeof idx==='number' && idx>=0) ? idx : -1;
-      if(editingChipIndex >= 0 && list[editingChipIndex]){
-        const c = list[editingChipIndex];
+      ensureSectionOptions(mSection);
+      editingChipAbs = (typeof absIndex==='number' && absIndex>=0) ? absIndex : -1;
+      if(editingChipAbs >= 0 && list[editingChipAbs]){
+        const c = list[editingChipAbs];
         chipTitle.textContent = 'Redigera snabbknapp';
         mLabel.value = c.label || '';
         mAmount.value = Number(c.amount||0) || '';
         mType.value = (c.type==='Inkomst'?'Inkomst':'Utgift');
         mPay.value = c.pay || '';
+        mSection.value = c.sec || 'sec_default';
         mMirror.checked = false;
         mNote.value = c.note || '';
       }else{
         chipTitle.textContent = 'Ny snabbknapp';
-        mLabel.value = ''; mAmount.value=''; mType.value='Utgift'; mPay.value=''; mMirror.checked=false; mNote.value='';
+        mLabel.value=''; mAmount.value=''; mType.value='Utgift'; mPay.value='';
+        mSection.value = 'sec_default';
+        mMirror.checked=false; mNote.value='';
       }
       chipModal.classList.add('open');
       mLabel.focus();
     }
     function closeChipModal(){ chipModal.classList.remove('open'); }
-    addChipBtn.addEventListener('click', ()=>openChipModal(-1));
+    document.getElementById('addChipBtn').addEventListener('click', ()=>openChipModal(-1));
     mCancel.addEventListener('click', closeChipModal);
     chipModal.addEventListener('click', (e)=>{ if(e.target===chipModal) closeChipModal(); });
     mMirror.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
@@ -463,11 +508,12 @@
         amount: Number(mAmount.value)||0,
         type: mType.value==='Inkomst' ? 'Inkomst' : 'Utgift',
         pay: mPay.value || '',
+        sec: mSection.value || 'sec_default',
         note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
       const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      if(editingChipIndex >= 0 && list[editingChipIndex]){
-        list[editingChipIndex] = obj;
+      if(editingChipAbs >= 0 && list[editingChipAbs]){
+        list[editingChipAbs] = obj;
       }else{
         list.push(obj);
       }
@@ -477,96 +523,153 @@
       closeChipModal();
     });
 
-    /* ====== SNABBKNAPPAR: render, dra/släpp, sort-läge ====== */
-    let placeholder = null;
-    let dragFromIndex = null;
+    /* ====== SNABBKNAPPAR: render, DnD, sort-läge, sektioner ====== */
+    let ph = null; // placeholder element
+    let dragFromAbs = null; // absolut index i listan
+    function makePlaceholder(){ const e=document.createElement('div'); e.className='chip placeholder'; e.textContent=' '; return e; }
 
-    function reorderQuickList(from, to){
-      if(from===to || from==null || to==null) return;
-      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      if(from<0 || from>=list.length || to<0 || to>=list.length) return;
-      const [item] = list.splice(from,1);
-      list.splice(to,0,item);
-      localStorage.setItem(LS_QUICK(), JSON.stringify(list));
+    function items(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); }catch(_){a=[]}
+      if(!Array.isArray(a)) a=[]; // bakåtkomp.
+      // fyll saknad sec
+      a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; });
+      return a;
+    }
+    function saveItems(a){ localStorage.setItem(LS_QUICK(), JSON.stringify(a)); }
+
+    function absoluteInsertIndexForSection(secId, secIndex, list){
+      // räkna fram plats i den platta listan där secIndex i secId börjar
+      let count=0;
+      for(let i=0;i<list.length;i++){
+        if(list[i].sec===secId){
+          if(count===secIndex) return i;
+          count++;
+        }
+      }
+      // annars: efter sista i sektionen
+      let last=-1;
+      for(let i=0;i<list.length;i++) if(list[i].sec===secId) last=i;
+      return (last>=0)? (last+1) : list.length;
+    }
+
+    function secIndexOfAbs(absIndex, list){
+      const sec = list[absIndex].sec;
+      let idx=0;
+      for(let i=0;i<absIndex;i++){
+        if(list[i].sec===sec) idx++;
+      }
+      return { sec, index: idx };
+    }
+
+    function moveChip(absFrom, toSecId, toSecIndex){
+      let list = items();
+      if(absFrom<0 || absFrom>=list.length) return;
+      const [item] = list.splice(absFrom,1);
+      item.sec = toSecId;
+      const insertAt = absoluteInsertIndexForSection(toSecId, toSecIndex, list);
+      list.splice(insertAt, 0, item);
+      saveItems(list);
       loadChips();
     }
 
-    function createPlaceholder(widthPx){
-      const ph = document.createElement('div');
-      ph.className = 'chip placeholder';
-      ph.style.width = (widthPx ? (widthPx+'px') : '64px');
-      ph.textContent = ' ';
-      return ph;
+    function moveChipBy(absFrom, deltaWithinSec){
+      let list = items();
+      const {sec, index} = secIndexOfAbs(absFrom, list);
+      const chipsInSec = list.filter(x=>x.sec===sec).length;
+      const newIndex = Math.max(0, Math.min(chipsInSec-1, index+deltaWithinSec));
+      moveChip(absFrom, sec, newIndex);
     }
 
-    function chipDragStart(e){
-      const el = e.currentTarget;
-      dragFromIndex = +el.getAttribute('data-i');
-      el.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      try{ e.dataTransfer.setData('text/plain', String(dragFromIndex)); }catch(_){}
-      if(!placeholder){
-        placeholder = createPlaceholder(el.offsetWidth);
-      }
-    }
-    function chipDragEnd(e){
-      e.currentTarget.classList.remove('dragging');
-      if(placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
-      placeholder = null; dragFromIndex = null;
-    }
-    function chipsDragOver(e){
-      e.preventDefault();
-      const chips = [...chipsWrap.querySelectorAll('.chip[data-i]')];
-      if(chips.length===0) return;
-      const after = chips.find(child=>{
-        const rect = child.getBoundingClientRect();
-        const mid = rect.left + rect.width/2;
-        return e.clientX < mid;
-      });
-      if(!placeholder) placeholder = createPlaceholder(72);
-      if(after){
-        chipsWrap.insertBefore(placeholder, after);
-      }else{
-        chipsWrap.insertBefore(placeholder, addChipBtn);
-      }
-    }
-    function chipsDrop(e){
-      e.preventDefault();
-      if(dragFromIndex==null) return;
-      const targets = [...chipsWrap.querySelectorAll('.chip[data-i]')];
-      let toIndex = targets.length; // default last
-      if(placeholder && placeholder.parentNode){
-        // find index of placeholder relative to chips
-        toIndex = [...chipsWrap.children].filter(n=>n.classList && n.classList.contains('chip') && n.hasAttribute('data-i'))
-                  .findIndex(n=> n===placeholder);
-        if(toIndex === -1){
-          // placeholder is before add button -> position = end
-          toIndex = targets.length;
+    function renderSection(sec){
+      const box = document.createElement('div');
+      box.className='chip-section';
+      box.setAttribute('data-sec', sec.id);
+
+      const head = document.createElement('div');
+      head.className='sec-head';
+      head.innerHTML = `<h4>${escapeHtml(sec.name)}</h4>`;
+      const tools = document.createElement('div');
+      tools.className='sec-tools';
+      const btnRename = document.createElement('button'); btnRename.textContent='Byt namn';
+      const btnDelete = document.createElement('button'); btnDelete.textContent='Ta bort';
+      tools.appendChild(btnRename); tools.appendChild(btnDelete);
+      head.appendChild(tools);
+      box.appendChild(head);
+
+      const bin = document.createElement('div');
+      bin.className='chip-bin empty';
+      bin.setAttribute('data-sec', sec.id);
+      box.appendChild(bin);
+
+      // dragover/drop för bin
+      bin.addEventListener('dragover', (e)=>{
+        e.preventDefault();
+        const chips = [...bin.querySelectorAll('.chip[data-abs]')];
+        if(chips.length) bin.classList.remove('empty');
+        const x = e.clientX;
+        let after = null;
+        for(const child of chips){
+          const rect = child.getBoundingClientRect();
+          const mid = rect.left + rect.width/2;
+          if(x < mid){ after = child; break; }
         }
-      }
-      // adjust because when dragging from left to right, placeholder index counts original as well
-      if(toIndex>dragFromIndex) toIndex--; // standard move correction
-      reorderQuickList(dragFromIndex, toIndex);
-      if(placeholder && placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
-      placeholder = null; dragFromIndex = null;
+        if(!ph) ph = makePlaceholder();
+        if(after) bin.insertBefore(ph, after);
+        else bin.appendChild(ph);
+      });
+      bin.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        if(dragFromAbs==null) return;
+        const toSec = bin.getAttribute('data-sec');
+        // index = hur många chip före placeholder
+        const siblings = [...bin.children].filter(el=> el.classList && el.classList.contains('chip') && el.hasAttribute('data-abs'));
+        let toIndex = siblings.length;
+        if(ph && ph.parentNode===bin){
+          toIndex = [...bin.children].filter(el=> el.classList && el.classList.contains('chip') && el.hasAttribute('data-abs')).indexOf(ph);
+          if(toIndex<0) toIndex = siblings.length;
+        }
+        moveChip(dragFromAbs, toSec, toIndex);
+        cleanupPlaceholder();
+      });
+
+      // tools
+      btnRename.onclick = ()=>{
+        const name = prompt('Nytt namn på sektion:', sec.name);
+        if(!name) return;
+        const secs = loadSections();
+        const i = secs.findIndex(s=>s.id===sec.id);
+        if(i>-1){ secs[i].name = name.trim(); saveSections(secs); loadChips(); }
+      };
+      btnDelete.onclick = ()=>{
+        const list = items();
+        if(list.some(x=>x.sec===sec.id)){ alert('Sektionen är inte tom. Flytta eller ta bort snabbknappar först.'); return; }
+        const secs = loadSections().filter(s=>s.id!==sec.id);
+        if(secs.length===0){ alert('Minst en sektion krävs.'); return; }
+        saveSections(secs); loadChips();
+      };
+
+      return box;
     }
 
-    function moveChipBy(idx, delta){
-      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      const to = Math.max(0, Math.min(list.length-1, idx+delta));
-      reorderQuickList(idx, to);
+    function cleanupPlaceholder(){
+      if(ph && ph.parentNode) ph.parentNode.removeChild(ph);
+      ph=null; dragFromAbs=null;
     }
 
     function loadChips(){
-      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      // rensa gamla
-      chipsWrap.querySelectorAll('.chip').forEach(e=>e.remove());
+      chipSections.innerHTML='';
+      const secs = loadSections();
+      // Bygg sektioner
+      secs.forEach(sec=> chipSections.appendChild(renderSection(sec)));
 
-      list.forEach((c,idx)=>{
+      const list = items();
+      // Lägg ut chips i respektive bin i list-ordning
+      list.forEach((c,absIdx)=>{
+        const bin = chipSections.querySelector(`.chip-bin[data-sec="${c.sec||'sec_default'}"]`) || chipSections.querySelector('.chip-bin[data-sec="sec_default"]');
+        if(bin) bin.classList.remove('empty');
         const el = document.createElement('div');
-        el.className = 'chip';
+        el.className='chip';
         el.setAttribute('draggable','true');
-        el.setAttribute('data-i', String(idx));
+        el.setAttribute('data-abs', String(absIdx));
 
         const tags = [c.type||'Utgift', c.pay||'−'].filter(Boolean).join(' · ');
         el.innerHTML = `
@@ -578,7 +681,7 @@
           <span class="x" title="Ta bort">×</span>
         `;
 
-        // klick på chip = lägg till rad (om inte interaktiv ikon trycks)
+        // klick = lägg till rad
         el.addEventListener('click',(ev)=>{
           const t = ev.target;
           if(t.classList.contains('x') || t.classList.contains('edit') || t.classList.contains('handle') || t.classList.contains('mv')) return;
@@ -589,41 +692,60 @@
         // ta bort
         el.querySelector('.x').addEventListener('click',(ev)=>{
           ev.stopPropagation();
-          const arr = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-          arr.splice(idx,1); localStorage.setItem(LS_QUICK(), JSON.stringify(arr));
-          loadChips();
+          const arr = items();
+          arr.splice(absIdx,1); saveItems(arr); loadChips();
         });
+
         // redigera
         el.querySelector('.edit').addEventListener('click',(ev)=>{
           ev.stopPropagation();
-          openChipModal(idx);
+          openChipModal(absIdx);
         });
-        // pil vänster/höger (sort-läge)
+
+        // pilar (inom sektion)
         el.querySelectorAll('.mv').forEach(btn=>{
           btn.addEventListener('click', (ev)=>{
             ev.stopPropagation();
             const dir = btn.getAttribute('data-mv');
-            if(dir==='left') moveChipBy(idx,-1);
-            else moveChipBy(idx, +1);
+            moveChipBy(absIdx, dir==='left' ? -1 : +1);
           });
         });
 
-        // dra/släpp
-        el.addEventListener('dragstart', chipDragStart);
-        el.addEventListener('dragend', chipDragEnd);
+        // DnD
+        el.addEventListener('dragstart', (e)=>{
+          dragFromAbs = absIdx;
+          el.classList.add('dragging');
+          try{ e.dataTransfer.setData('text/plain', String(absIdx)); }catch(_){}
+          e.dataTransfer.effectAllowed='move';
+        });
+        el.addEventListener('dragend', ()=>{
+          el.classList.remove('dragging');
+          cleanupPlaceholder();
+        });
 
-        chipsWrap.insertBefore(el, sortChipsBtn);
+        bin && bin.appendChild(el);
       });
 
-      // container för dragover/drop
-      chipsWrap.addEventListener('dragover', chipsDragOver);
-      chipsWrap.addEventListener('drop', chipsDrop);
+      // markera tomma bins
+      chipSections.querySelectorAll('.chip-bin').forEach(b=>{
+        if(!b.querySelector('.chip')) b.classList.add('empty');
+      });
     }
 
-    // sorteringsläge (för att visa pilar på mobil)
+    // sortläge (visar pilar)
     sortChipsBtn.addEventListener('click', ()=>{
       sortChipsBtn.classList.toggle('active');
       chipsWrap.classList.toggle('sort-mode');
+    });
+
+    // ny sektion
+    addSectionBtn.addEventListener('click', ()=>{
+      const name = prompt('Namn på ny sektion:', 'Ny sektion');
+      if(!name) return;
+      const secs = loadSections();
+      secs.push({id:uid(), name:name.trim()});
+      saveSections(secs);
+      loadChips();
     });
 
     /* ====== MOLN (AUTOSAVE) ====== */
@@ -706,7 +828,7 @@
       cloudInfo.textContent = `Moln-nyckel: ${cloudKey()}`;
     }
 
-    /* ====== RENDER ====== */
+    /* ====== RENDER TABELL ====== */
     function autoGrow(el){
       el.style.height = 'auto';
       const h = Math.min(200, Math.max(48, el.scrollHeight+2));
