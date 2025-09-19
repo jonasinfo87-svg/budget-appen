@@ -51,6 +51,7 @@
     .chip.placeholder{ border:2px dashed var(--card-border); background:transparent; cursor:default; padding:6px 12px }
 
     /* Sortläge: visa pilar */
+    .chip-sections.sort-mode .mv{ display:inline-block }
     .chips.sort-mode .mv{ display:inline-block }
     .mv{ display:none }
     #sortChipsBtn.active{ background:#e7f6f8; border-color:#bfe5ea }
@@ -747,11 +748,12 @@
       });
     }
 
-    // sortläge (visar pilar)
-    sortChipsBtn.addEventListener('click', ()=>{
-      sortChipsBtn.classList.toggle('active');
-      chipsWrap.classList.toggle('sort-mode');
-    });
+    // sortläge (visar pilar i både toolbaren och sektionerna)
+sortChipsBtn.addEventListener('click', ()=>{
+  sortChipsBtn.classList.toggle('active');
+  chipsWrap.classList.toggle('sort-mode');     // för ev. chips i toolbar
+  chipSections.classList.toggle('sort-mode');  // gör att pilarna syns i sektionerna
+});
 
     // ny sektion
     addSectionBtn.addEventListener('click', ()=>{
