@@ -76,7 +76,7 @@
       content:'Släpp snabbknappar här'; color:#86a6ab; font-size:13px;
     }
 
-    /* Mobil-förbättringar för chips/sektioner */
+    /* Mobilförbättringar */
     @media (max-width:600px){
       .wrap{padding:14px}
       .chip-sections{ display:block; }
@@ -110,8 +110,7 @@
       border:1px solid var(--card-border);
       background:#fff; color:#073642;
       border-radius:10px; padding:10px 12px;
-      font-size:16px; line-height:1.25; min-height:44px;
-      appearance:none;
+      font-size:16px; line-height:1.25; min-height:44px; appearance:none;
     }
     td input::placeholder{color:#86a6ab}
     input[type=number]::-webkit-outer-spin-button,
@@ -150,7 +149,7 @@
 
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100001}
     .modal.open{display:flex}
-    .modal-card{width:min(92vw,560px);background:#fff;border:1px solid var(--card-border);border-radius:16px;padding:16px 16px 12px}
+    .modal-card{width:min(92vw,680px);background:#fff;border:1px solid var(--card-border);border-radius:16px;padding:16px 16px 12px}
     .modal h3{margin:0 0 8px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .grid .full{grid-column:1/-1}
@@ -162,9 +161,35 @@
     .modal label{font-size:13px;color:#586e75;display:block;margin:4px 0}
     .modal .row{display:flex;align-items:center;gap:8px;margin-top:4px}
 
+    /* === Mall-kort (tydlig titel + beskrivning) === */
+    .tpl-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin:4px 0 10px}
+    .tpl-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .tpl-card{
+      border:1px solid var(--card-border);
+      background:#fff; border-radius:12px; padding:12px;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .tpl-title{font-weight:800; font-size:16px; color:#0b3b4c}
+    .tpl-desc{font-size:13px; color:#567}
+    .tpl-chiplist{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+    .tpl-chiplist .chip{transform:scale(.9); transform-origin:left; cursor:default}
+
+    /* Tema-färger på vänsterkant */
+    .tpl-card::before{
+      content:''; display:block; width:6px; align-self:stretch; border-radius:8px;
+      margin:-12px 8px -12px -12px;
+    }
+    .tpl-theme-default::before{ background:#cfe3e6 }
+    .tpl-theme-blue::before{ background:#74b3ff }
+    .tpl-theme-green::before{ background:#7ad58a }
+    .tpl-theme-purple::before{ background:#b89cff }
+    .tpl-theme-orange::before{ background:#ffb36b }
+    .tpl-theme-gray::before{ background:#bfcbd1 }
+
     @media (max-width:600px){
       .sum-grid{grid-template-columns:1fr}
       table{min-width:980px}
+      .tpl-cards{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -332,9 +357,54 @@
   <div class="modal" id="tplModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="tplTitle">
       <h3 id="tplTitle">Snabbknappsmallar</h3>
-      <div id="tplList" class="grid full" style="margin-top:6px"></div>
+
+      <div class="tpl-toolbar">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="tplCreateBtn">+ Ny mall från sektion</button>
+        </div>
+        <div style="opacity:.7;font-size:13px">Kryssa i en eller flera mallar och klicka ”Lägg till”.</div>
+      </div>
+
+      <!-- Lista med mallar -->
+      <div id="tplList" class="tpl-cards"></div>
+
+      <!-- Skapa egen mall -->
+      <div id="tplCreateBox" class="full" style="display:none; margin-top:10px">
+        <div class="grid">
+          <div class="full"><strong>Skapa mall från befintlig sektion</strong></div>
+          <div>
+            <label>Namn</label>
+            <input id="tplName" type="text" placeholder="t.ex. Mina basutgifter" />
+          </div>
+          <div>
+            <label>Tema</label>
+            <select id="tplTheme">
+              <option value="default">Standard</option>
+              <option value="blue">Blå</option>
+              <option value="green">Grön</option>
+              <option value="purple">Lila</option>
+              <option value="orange">Orange</option>
+              <option value="gray">Grå</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>Beskrivning</label>
+            <input id="tplDesc" type="text" placeholder="Kort beskrivning…" />
+          </div>
+          <div class="full">
+            <label>Källa (sektion)</label>
+            <select id="tplSourceSection"></select>
+          </div>
+        </div>
+        <div class="actions" style="justify-content:flex-start">
+          <button id="tplCreateCancel">Avbryt</button>
+          <button class="primary" id="tplCreateSave">Spara mall</button>
+        </div>
+        <hr style="border:none;border-top:1px solid #e6eff2;margin:8px 0">
+      </div>
+
       <div class="actions">
-        <button id="tplCancel">Avbryt</button>
+        <button id="tplCancel">Stäng</button>
         <button class="primary" id="tplApply">Lägg till</button>
       </div>
     </div>
@@ -348,12 +418,13 @@
       secret:   'BudgetSecret123'
     };
 
-    /* ====== MALLAR ====== */
-    const TEMPLATES = [
+    /* ====== MALLAR (inbyggda) ====== */
+    const TEMPLATES_BUILTIN = [
       {
         id:'tpl_basic',
         name:'Basutgifter (boende + vardag)',
         desc:'Boende, el, mat och vardagsabonnemang.',
+        theme:'blue',
         sections:[
           { name:'Boende', chips:[
             {label:'Hyra', type:'Utgift', amount:0, pay:'E-faktura'},
@@ -371,6 +442,7 @@
         id:'tpl_income',
         name:'Vanliga inkomster',
         desc:'Lön och återkommande inkomster.',
+        theme:'green',
         sections:[
           { name:'Inkomster', chips:[
             {label:'Lön', type:'Inkomst', amount:0, pay:''},
@@ -382,6 +454,7 @@
         id:'tpl_transport',
         name:'Transport',
         desc:'Resor och fordon.',
+        theme:'orange',
         sections:[
           { name:'Transport', chips:[
             {label:'Bränsle', type:'Utgift', amount:0, pay:''},
@@ -409,6 +482,7 @@
     const LS_MEMCAT  = ()=>`budget_cat_memory_v2_${getKey()}`;
     const LS_QUICK   = ()=>`budget_quick_items_v2_${getKey()}`;      // snabbknappar
     const LS_SECTS   = ()=>`budget_quick_sections_v1_${getKey()}`;   // sektioner
+    const LS_TPLS    = ()=>`budget_templates_custom_v1_${getKey()}`; // egna mallar
 
     function cloudEnabled(){ return !!CLOUD.endpoint && !!cloudKey(); }
     function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
@@ -464,6 +538,14 @@
     const tplList = document.getElementById('tplList');
     const tplCancel = document.getElementById('tplCancel');
     const tplApply = document.getElementById('tplApply');
+    const tplCreateBtn = document.getElementById('tplCreateBtn');
+    const tplCreateBox = document.getElementById('tplCreateBox');
+    const tplCreateCancel = document.getElementById('tplCreateCancel');
+    const tplCreateSave = document.getElementById('tplCreateSave');
+    const tplName = document.getElementById('tplName');
+    const tplDesc = document.getElementById('tplDesc');
+    const tplTheme = document.getElementById('tplTheme');
+    const tplSourceSection = document.getElementById('tplSourceSection');
 
     /* ====== DATA ====== */
     let rows = [];
@@ -552,6 +634,20 @@
       return id;
     }
 
+    /* ====== TEMPLATES (egna) ====== */
+    function loadCustomTemplates(){
+      try{
+        const arr = JSON.parse(localStorage.getItem(LS_TPLS())||'[]');
+        return Array.isArray(arr) ? arr : [];
+      }catch(_){ return []; }
+    }
+    function saveCustomTemplates(arr){
+      localStorage.setItem(LS_TPLS(), JSON.stringify(arr||[]));
+    }
+    function allTemplates(){
+      return [...TEMPLATES_BUILTIN, ...loadCustomTemplates()];
+    }
+
     /* ====== CHIP-MODAL (ny + redigera) ====== */
     let editingChipAbs = -1; // absolut index i listan, -1 = ny
     function openChipModal(absIndex){
@@ -607,7 +703,7 @@
       cloudSaveDebounced();
     });
 
-    /* ====== SNABBKNAPPAR: render, DnD, sort-läge, sektioner ====== */
+    /* ====== SNABBKNAPPAR ====== */
     let ph = null; // placeholder element
     let dragFromAbs = null; // absolut index i listan
     function makePlaceholder(){ const e=document.createElement('div'); e.className='chip placeholder'; e.textContent=' '; return e; }
@@ -694,7 +790,7 @@
       bin.setAttribute('data-sec', sec.id);
       box.appendChild(bin);
 
-      // DnD – exakt placering där du släpper
+      // DnD – exakt placering
       bin.addEventListener('dragover', (e)=>{
         e.preventDefault();
         const chips = [...bin.querySelectorAll('.chip[data-abs]')];
@@ -847,33 +943,104 @@
       cloudSaveDebounced();
     });
 
-    /* ====== MALLAR ====== */
-    function openTplModal(){
+    /* ====== MALLAR: UI ====== */
+    function renderTplList(){
       tplList.innerHTML = '';
-      TEMPLATES.forEach(t=>{
-        const wrap = document.createElement('div');
-        wrap.className = 'full';
-        wrap.style.border = '1px solid var(--card-border)';
-        wrap.style.borderRadius = '10px';
-        wrap.style.padding = '10px';
-        wrap.style.background = '#fff';
-        wrap.innerHTML = `
-          <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
-            <input type="checkbox" data-tpl="${t.id}" style="margin-top:4px">
-            <span>
-              <strong>${escapeHtml(t.name)}</strong><br>
-              <small style="color:#577">${escapeHtml(t.desc||'')}</small>
-            </span>
+      const tpls = allTemplates();
+      if(!tpls.length){
+        tplList.innerHTML = `<div class="tpl-card tpl-theme-default"><div class="tpl-title">Inga mallar ännu</div><div class="tpl-desc">Skapa en via ”Ny mall från sektion”.</div></div>`;
+        return;
+      }
+      tpls.forEach(t=>{
+        const themeClass = 'tpl-theme-' + (t.theme||'default');
+        const card = document.createElement('div');
+        card.className = `tpl-card ${themeClass}`;
+        const chipsPreview = (t.sections||[]).flatMap(s=> s.chips||[]).slice(0,6);
+        const moreCount = Math.max(0, (t.sections||[]).reduce((n,s)=>n+(s.chips?s.chips.length:0),0) - chipsPreview.length);
+
+        card.innerHTML = `
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer">
+            <input type="checkbox" data-tpl="${escapeHtml(t.id)}" style="margin-top:4px">
+            <div style="flex:1">
+              <div class="tpl-title">${escapeHtml(t.name)}</div>
+              <div class="tpl-desc">${escapeHtml(t.desc||'')}</div>
+              <div class="tpl-chiplist">
+                ${chipsPreview.map(c=>`<span class="chip"><span class="label">${escapeHtml(c.label)} <small>(${escapeHtml((c.type||'Utgift')+(c.pay?(' · '+c.pay):''))})</small></span></span>`).join('')}
+                ${moreCount?`<span class="chip"><span class="label">+${moreCount} till</span></span>`:''}
+              </div>
+            </div>
           </label>
+          ${String(t.id||'').startsWith('user_') ? `<div style="display:flex;gap:8px;margin-top:6px"><button data-del="${escapeHtml(t.id)}" class="danger">Ta bort</button></div>`:''}
         `;
-        tplList.appendChild(wrap);
+        tplList.appendChild(card);
       });
+
+      // delete-knappar för egna mallar
+      tplList.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.getAttribute('data-del');
+          const own = loadCustomTemplates().filter(x=>x.id!==id);
+          saveCustomTemplates(own);
+          renderTplList();
+          cloudSaveDebounced();
+        });
+      });
+    }
+
+    function openTplModal(){
+      // fyll sektioner i skaparen
+      const secs = loadSections();
+      tplSourceSection.innerHTML = secs.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+      // lista mallar
+      renderTplList();
       tplModal.classList.add('open');
+      tplCreateBox.style.display = 'none';
     }
     function closeTplModal(){ tplModal.classList.remove('open'); }
+
     templatesBtn.addEventListener('click', openTplModal);
     tplCancel.addEventListener('click', closeTplModal);
     tplModal.addEventListener('click', (e)=>{ if(e.target===tplModal) closeTplModal(); });
+
+    // skapa egen mall UI
+    tplCreateBtn.addEventListener('click', ()=>{
+      tplCreateBox.style.display = 'block';
+      if(!tplName.value) tplName.value = 'Min mall';
+    });
+    tplCreateCancel.addEventListener('click', ()=>{
+      tplCreateBox.style.display = 'none';
+    });
+    tplCreateSave.addEventListener('click', ()=>{
+      const name = tplName.value.trim();
+      if(!name){ alert('Skriv ett namn på mallen.'); return; }
+      const desc = tplDesc.value.trim();
+      const theme = tplTheme.value || 'default';
+      const secId = tplSourceSection.value;
+
+      // hämta chips från vald sektion
+      const list = items();
+      const secs = loadSections();
+      const sec = secs.find(s=>s.id===secId);
+      const chips = list.filter(c=>c.sec===secId).map(c=>({
+        label: c.label, type: c.type, amount: Number(c.amount)||0, pay: c.pay||'', note: c.note||''
+      }));
+      if(!chips.length){ alert('Den sektionen har inga snabbknappar.'); return; }
+
+      const tpls = loadCustomTemplates();
+      const newTpl = {
+        id: 'user_' + Math.random().toString(36).slice(2,10),
+        name, desc, theme,
+        sections: [{ name: sec ? sec.name : 'Sektion', chips }]
+      };
+      tpls.push(newTpl);
+      saveCustomTemplates(tpls);
+      renderTplList();
+      cloudSaveDebounced();
+
+      // reset form
+      tplName.value=''; tplDesc.value=''; tplTheme.value='default'; tplCreateBox.style.display='none';
+      alert('Mallen sparad! Du kan nu bocka i den och lägga till.');
+    });
 
     function applySelectedTemplates(){
       const checked = [...tplList.querySelectorAll('input[type="checkbox"][data-tpl]:checked')].map(x=>x.getAttribute('data-tpl'));
@@ -881,13 +1048,13 @@
       let list = items();
       let added = 0, skipped = 0;
 
+      const tpls = allTemplates();
       checked.forEach(id=>{
-        const t = TEMPLATES.find(x=>x.id===id);
+        const t = tpls.find(x=>x.id===id);
         if(!t) return;
-        t.sections.forEach(secTpl=>{
+        (t.sections||[]).forEach(secTpl=>{
           const secId = ensureSectionByName(secTpl.name);
-          secTpl.chips.forEach(ch=>{
-            // hoppa över om samma label redan finns i sektionen
+          (secTpl.chips||[]).forEach(ch=>{
             const exists = list.some(x=> x.sec===secId && x.label.toLowerCase()===String(ch.label).toLowerCase());
             if(exists){ skipped++; return; }
             list.push({
@@ -919,8 +1086,9 @@
       return {
         rows,
         salary: Number(salary)||0,
-        quick: items(),           // snabbknappar -> molnet
-        sections: loadSections(), // sektioner -> molnet
+        quick: items(),            // snabbknappar
+        sections: loadSections(),  // sektioner
+        templates: loadCustomTemplates(), // egna mallar
         updatedAt: Date.now()
       };
     }
@@ -952,7 +1120,6 @@
         let json; try{ json = JSON.parse(text); }catch(_){}
         const data = (json && json.ok && json.data) ? json.data : json;
         if(data){
-          // rader
           if(Array.isArray(data.rows)){
             rows = data.rows.map(r=>({
               category:r.category||'',
@@ -962,12 +1129,10 @@
               note:r.note||''
             }));
           }
-          // lön
           if(typeof data.salary!=='undefined'){
             salary = Number(data.salary)||0;
             salaryInput.value = salary || '';
           }
-          // snabbknappar & sektioner (NYTT)
           if(Array.isArray(data.sections)){
             localStorage.setItem(LS_SECTS(), JSON.stringify(data.sections));
           }
@@ -982,6 +1147,9 @@
                 note:c.note||''
               }))
             ));
+          }
+          if(Array.isArray(data.templates)){
+            saveCustomTemplates(data.templates);
           }
           cloudInfo.textContent = 'Moln laddat';
         }else{
@@ -1025,7 +1193,7 @@
       cloudInfo.textContent = `Moln-nyckel: ${cloudKey()}`;
     }
 
-    /* ====== RENDER TABELL ====== */
+    /* ====== TABELL ====== */
     function autoGrow(el){
       el.style.height = 'auto';
       const h = Math.min(200, Math.max(48, el.scrollHeight+2));
