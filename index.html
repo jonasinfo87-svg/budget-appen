@@ -51,8 +51,8 @@
     .chip.placeholder{ border:2px dashed var(--card-border); background:transparent; cursor:default; padding:6px 12px }
 
     /* Sortläge: visa pilar */
+    .chip-sections.sort-mode .mv{ display:inline-block }
     .chips.sort-mode .mv{ display:inline-block }
-    .chip-sections.sort-mode .mv{ display:inline-block } /* <- NYTT */
     .mv{ display:none }
     #sortChipsBtn.active{ background:#e7f6f8; border-color:#bfe5ea }
 
@@ -80,7 +80,7 @@
     .salary-box input{font-size:16px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;width:220px;min-height:44px;background:#fff;color:var(--card-text)}
 
     .table-wrap{overflow:auto;background:var(--card);padding:8px;border-radius:12px;border:1px solid var(--card-border)}
-    table{width:100%;border-collapse:collapse;min-width:1180px;background:#fff;border-radius:10px;overflow:hidden;color:#var(--card-text)}
+    table{width:100%;border-collapse:collapse;min-width:1180px;background:#fff;border-radius:10px;overflow:hidden;color:var(--card-text)}
     th,td{padding:10px 8px;border:1px solid #cfe6e9;text-align:left;vertical-align:middle}
     th{background:var(--table-head);color:#fff;font-weight:800;white-space:nowrap}
     .right{text-align:right}
@@ -610,13 +610,14 @@
       bin.setAttribute('data-sec', sec.id);
       box.appendChild(bin);
 
-      // dragover/drop för bin (exakt placering)
+      // dragover/drop för bin (fix: exakt placering där du släpper)
       bin.addEventListener('dragover', (e)=>{
         e.preventDefault();
         const chips = [...bin.querySelectorAll('.chip[data-abs]')];
         if(chips.length) bin.classList.remove('empty');
         const x = e.clientX, y = e.clientY;
         let after = null;
+        // hitta närmaste chip under musen och avgör före/efter på radens mitt
         for(const child of chips){
           const rect = child.getBoundingClientRect();
           if(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom){
@@ -633,6 +634,8 @@
         e.preventDefault();
         if(dragFromAbs==null) return;
         const toSec = bin.getAttribute('data-sec');
+
+        // räkna hur många riktiga chips (med data-abs) som ligger före placeholdern
         let toIndex = 0;
         for(const child of bin.children){
           if(child===ph) break;
@@ -746,11 +749,11 @@
     }
 
     // sortläge (visar pilar i både toolbaren och sektionerna)
-    sortChipsBtn.addEventListener('click', ()=>{
-      sortChipsBtn.classList.toggle('active');
-      chipsWrap.classList.toggle('sort-mode');     // för ev. chips i toolbar
-      chipSections.classList.toggle('sort-mode');  // gör att pilarna syns i sektionerna
-    });
+sortChipsBtn.addEventListener('click', ()=>{
+  sortChipsBtn.classList.toggle('active');
+  chipsWrap.classList.toggle('sort-mode');     // för ev. chips i toolbar
+  chipSections.classList.toggle('sort-mode');  // gör att pilarna syns i sektionerna
+});
 
     // ny sektion
     addSectionBtn.addEventListener('click', ()=>{
