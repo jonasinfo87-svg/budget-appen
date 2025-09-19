@@ -50,9 +50,9 @@
     .chip.dragging{ opacity:.35 }
     .chip.placeholder{ border:2px dashed var(--card-border); background:transparent; cursor:default; padding:6px 12px }
 
-    /* Sortläge: visa pilar */
-    .chip-sections.sort-mode .mv{ display:inline-block }
+    /* Sortläge: visa pilar i både toolbar (framtidssäkrat) och sektionerna */
     .chips.sort-mode .mv{ display:inline-block }
+    .chip-sections.sort-mode .mv{ display:inline-block }
     .mv{ display:none }
     #sortChipsBtn.active{ background:#e7f6f8; border-color:#bfe5ea }
 
@@ -464,10 +464,10 @@
       if(secs.length===0){ secs=[{id:'sec_default', name:'Snabbknappar'}]; localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
       return secs;
     }
-    function saveSections(secs){ localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
-    function ensureSectionOptions(selectEl){
-      const secs = loadSections();
-      selectEl.innerHTML = secs.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    // SPARA sektioner + trigga moln
+    function saveSections(secs){
+      localStorage.setItem(LS_SECTS(), JSON.stringify(secs));
+      cloudSaveDebounced(); // autospara till moln
     }
 
     /* ====== CHIP-MODAL (ny + redigera) ====== */
@@ -501,6 +501,12 @@
     chipModal.addEventListener('click', (e)=>{ if(e.target===chipModal) closeChipModal(); });
     mMirror.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
     mPay.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
+
+    function ensureSectionOptions(selectEl){
+      const secs = loadSections();
+      selectEl.innerHTML = secs.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    }
+
     mSave.addEventListener('click', ()=>{
       const label = mLabel.value.trim();
       if(!label){ alert('Skriv en kategori.'); mLabel.focus(); return; }
@@ -512,13 +518,14 @@
         sec: mSection.value || 'sec_default',
         note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
-      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
+      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]') || [];
       if(editingChipAbs >= 0 && list[editingChipAbs]){
         list[editingChipAbs] = obj;
       }else{
         list.push(obj);
       }
       localStorage.setItem(LS_QUICK(), JSON.stringify(list));
+      cloudSaveDebounced(); // NYTT: synka moln
       saveCategoryToMemory(label);
       loadChips();
       closeChipModal();
@@ -529,10 +536,17 @@
     let dragFromAbs = null; // absolut index i listan
     function makePlaceholder(){ const e=document.createElement('div'); e.className='chip placeholder'; e.textContent=' '; return e; }
 
-    function items(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); }catch(_){a=[]}
-      if(!Array.isArray(a)) a=[]; a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; }); return a;
+    function items(){
+      let a=[]; try{ a=JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); }catch(_){a=[]}
+      if(!Array.isArray(a)) a=[];
+      a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; });
+      return a;
     }
-    function saveItems(a){ localStorage.setItem(LS_QUICK(), JSON.stringify(a)); }
+    // SPARA chips + trigga moln
+    function saveItems(a){
+      localStorage.setItem(LS_QUICK(), JSON.stringify(a));
+      cloudSaveDebounced(); // NYTT
+    }
 
     function absoluteInsertIndexForSection(secId, secIndex, list){
       let count=0;
@@ -575,17 +589,17 @@
       moveChip(absFrom, sec, newIndex);
     }
 
-    /* Flytta upp/ner mellan sektioner */
+    // flytta upp/ner mellan sektioner
     function moveChipToAdjacentSection(absFrom, dir){
       const list = items();
       const secs = loadSections();
       const {sec, index} = secIndexOfAbs(absFrom, list);
       let si = secs.findIndex(s=>s.id===sec); if(si<0) si=0;
       const newSi = dir==='up' ? si-1 : si+1;
-      if(newSi<0 || newSi>=secs.length) return;
+      if(newSi<0 || newSi>=secs.length) return; // utanför gräns
       const newSecId = secs[newSi].id;
       const targetCount = list.filter(x=>x.sec===newSecId).length;
-      const toIndex = Math.min(index, targetCount);
+      const toIndex = Math.min(index, targetCount); // behåll ungefär samma position
       moveChip(absFrom, newSecId, toIndex);
     }
 
@@ -610,7 +624,7 @@
       bin.setAttribute('data-sec', sec.id);
       box.appendChild(bin);
 
-      // Dragover/drop för exakt placering
+      // DnD exakt placering
       bin.addEventListener('dragover', (e)=>{
         e.preventDefault();
         const chips = [...bin.querySelectorAll('.chip[data-abs]')];
@@ -642,7 +656,7 @@
         cleanupPlaceholder();
       });
 
-      // Verktyg
+      // tools
       btnRename.onclick = ()=>{
         const name = prompt('Nytt namn på sektion:', sec.name);
         if(!name) return;
@@ -692,7 +706,7 @@
           <span class="x" title="Ta bort">×</span>
         `;
 
-        // Klick = lägg till rad
+        // klick = lägg till rad
         el.addEventListener('click',(ev)=>{
           const t = ev.target;
           if(t.classList.contains('x') || t.classList.contains('edit') || t.classList.contains('handle') || t.classList.contains('mv')) return;
@@ -700,20 +714,20 @@
           render(); updateTotals(); saveLocal(); cloudSaveDebounced();
         });
 
-        // Ta bort knapp
+        // ta bort
         el.querySelector('.x').addEventListener('click',(ev)=>{
           ev.stopPropagation();
           const arr = items();
           arr.splice(absIdx,1); saveItems(arr); loadChips();
         });
 
-        // Redigera knapp
+        // redigera
         el.querySelector('.edit').addEventListener('click',(ev)=>{
           ev.stopPropagation();
           openChipModal(absIdx);
         });
 
-        // Pilar
+        // pilar
         el.querySelectorAll('.mv').forEach(btn=>{
           btn.addEventListener('click', (ev)=>{
             ev.stopPropagation();
@@ -725,7 +739,7 @@
           });
         });
 
-        // Drag & drop
+        // DnD
         el.addEventListener('dragstart', (e)=>{
           dragFromAbs = absIdx;
           el.classList.add('dragging');
@@ -745,11 +759,11 @@
       });
     }
 
-    // Sortläge (pilar i toolbar och sektioner)
+    // Sortläge: visa pilar
     sortChipsBtn.addEventListener('click', ()=>{
       sortChipsBtn.classList.toggle('active');
       chipsWrap.classList.toggle('sort-mode');     // ev. chips i toolbar
-      chipSections.classList.toggle('sort-mode');  // pilar i sektionerna
+      chipSections.classList.toggle('sort-mode');  // pilar i sektioner
     });
 
     // Ny sektion
@@ -758,13 +772,21 @@
       if(!name) return;
       const secs = loadSections();
       secs.push({id:uid(), name:name.trim()});
-      saveSections(secs);
+      saveSections(secs); // triggar moln
       loadChips();
     });
 
     /* ====== MOLN (AUTOSAVE) ====== */
     let isLoadingFromCloud = false;
-    function payload(){ return { rows, salary: Number(salary)||0, updatedAt: Date.now() }; }
+    function payload(){
+      return {
+        rows,
+        salary: Number(salary)||0,
+        quick: items(),           // snabbknappar
+        sections: loadSections(), // sektioner
+        updatedAt: Date.now()
+      };
+    }
 
     async function cloudSave(){
       if(!cloudEnabled() || isLoadingFromCloud) return;
@@ -792,6 +814,7 @@
         const text = await res.text();
         let json; try{ json = JSON.parse(text); }catch(_){}
         const data = (json && json.ok && json.data) ? json.data : json;
+
         if(data && Array.isArray(data.rows)){
           rows = data.rows.map(r=>({
             category:r.category||'',
@@ -806,11 +829,21 @@
         }else{
           cloudInfo.textContent = 'Ingen molndata (än)';
         }
+
+        // NYTT: hämta snabbknappar + sektioner till localStorage
+        if (data && Array.isArray(data.quick)) {
+          localStorage.setItem(LS_QUICK(), JSON.stringify(data.quick));
+        }
+        if (data && Array.isArray(data.sections)) {
+          localStorage.setItem(LS_SECTS(), JSON.stringify(data.sections));
+        }
+
       }catch(err){
         console.warn('Moln load fel:', err);
         cloudInfo.textContent = 'Molnfel vid laddning';
       }finally{
-        render(); updateTotals(); isLoadingFromCloud = false;
+        render(); updateTotals(); loadChips(); // se till att UI visar chips/sektioner från molnet
+        isLoadingFromCloud = false;
       }
     }
 
@@ -828,10 +861,11 @@
     /* ====== INIT ====== */
     function init(){
       loadCategoryMemory();
-      loadChips();
       loadLocal();
-      cloudLoad();
+      loadChips();     // rita ev. lokala chips direkt
+      cloudLoad();     // och ersätt med moln om sådant finns
       render(); updateTotals();
+
       salaryInput.addEventListener('input', ()=>{
         salary = Number(salaryInput.value)||0;
         saveLocal(); cloudSaveDebounced(); updateTotals();
