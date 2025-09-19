@@ -52,7 +52,7 @@
     /* BRED OCH LÄTTLÄST ANTECKNING */
     th.col-note{width:520px}
     td.col-note textarea.note-input{
-      width:100%; min-height:48px; max-height:160px; resize:vertical;
+      width:100%; min-height:48px; max-height:200px; resize:vertical;
       box-sizing:border-box; border:1px solid var(--card-border); border-radius:10px;
       padding:10px 12px; font-size:16px; line-height:1.35; background:#fff; color:var(--card-text);
       overflow:auto; white-space:pre-wrap
@@ -277,11 +277,11 @@
   <script>
   (function(){
     /* ====== KONFIG ====== */
-    // I BUDGET
-const CLOUD = {
-  endpoint: 'https://script.google.com/macros/s/AKfycbzgA6bjMpMr8OF-YTdSHKGkfhBj_JNg0RgBD8gxrFozUMbOT2-dLz4zYq3Wp2ZO7fyz-Q/exec',
-  secret:   'BudgetSecret123'
-};
+    // ENDPOINT för BUDGET-moln (din Apps Script-webbapp för Budget)
+    const CLOUD = {
+      endpoint: 'https://script.google.com/macros/s/AKfycbzgA6bjMpMr8OF-YTdSHKGkfhBj_JNg0RgBD8gxrFozUMbOT2-dLz4zYq3Wp2ZO7fyz-Q/exec',
+      secret:   'BudgetSecret123' // valfritt; lämna tomt om din doGet/doPost inte kräver det
+    };
 
     /* ====== HJÄLPARE ====== */
     function getKey(){
@@ -294,7 +294,16 @@ const CLOUD = {
       }
       return k;
     }
-    function cloudEnabled(){ return !!CLOUD.endpoint && !!getKey(); }
+    // Moln-nyckel => isolerar Budget från Varukorgen även om ?key= skulle vara samma
+    function cloudKey(){ return 'budget_' + getKey(); }
+
+    // LocalStorage nycklar per budget-key
+    const LS_ROWS   = ()=>`budget_rows_v2_${getKey()}`;
+    const LS_SALARY = ()=>`budget_salary_v2_${getKey()}`;
+    const LS_MEMCAT = ()=>`budget_cat_memory_v2_${getKey()}`;
+    const LS_QUICK  = ()=>`budget_quick_items_v2_${getKey()}`; // snabbknappar per budget
+
+    function cloudEnabled(){ return !!CLOUD.endpoint && !!cloudKey(); }
     function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
     function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
     const fmt = new Intl.NumberFormat('sv-SE',{style:'currency',currency:'SEK',maximumFractionDigits:0});
@@ -383,10 +392,9 @@ const CLOUD = {
     copyBtn.onclick = ()=> copyLiveLinkBtn.click();
     updateShareLink();
 
-    /* ====== KATEGORI-MINNE ====== */
-    const MEM_KEY = 'budget_cat_memory_v1';
+    /* ====== KATEGORI-MINNE (per budget-key) ====== */
     function loadCategoryMemory(){
-      let arr = []; try{ arr = JSON.parse(localStorage.getItem(MEM_KEY)||'[]'); }catch(_){}
+      let arr = []; try{ arr = JSON.parse(localStorage.getItem(LS_MEMCAT())||'[]'); }catch(_){}
       if(!Array.isArray(arr)) arr = [];
       categoryMemoryList.innerHTML = arr.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
       return arr;
@@ -397,14 +405,14 @@ const CLOUD = {
       const arr = loadCategoryMemory();
       if(!arr.includes(label)){
         arr.push(label);
-        localStorage.setItem(MEM_KEY, JSON.stringify(arr));
+        localStorage.setItem(LS_MEMCAT(), JSON.stringify(arr));
         loadCategoryMemory();
       }
     }
-    function clearCategoryMemory(){ localStorage.removeItem(MEM_KEY); loadCategoryMemory(); }
+    function clearCategoryMemory(){ localStorage.removeItem(LS_MEMCAT()); loadCategoryMemory(); }
     clearMemBtn.onclick = ()=>{ if(confirm('Rensa endast kategori-minnet? (påverkar inte dina rader)')) clearCategoryMemory(); };
 
-    /* ====== SNABBKNAPPAR ====== */
+    /* ====== SNABBKNAPPAR (per budget-key) ====== */
     function openChipModal(){
       mLabel.value = ''; mAmount.value=''; mType.value='Utgift'; mPay.value=''; mNote.value='';
       mMirror.checked = false;
@@ -431,16 +439,16 @@ const CLOUD = {
         pay: mPay.value || '',
         note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
-      const list = JSON.parse(localStorage.getItem('budget_quick_items')||'[]');
+      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
       list.push(obj);
-      localStorage.setItem('budget_quick_items', JSON.stringify(list));
+      localStorage.setItem(LS_QUICK(), JSON.stringify(list));
       saveCategoryToMemory(label);
       loadChips();
       closeChipModal();
     });
 
     function loadChips(){
-      const list = JSON.parse(localStorage.getItem('budget_quick_items')||'[]');
+      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
       chipsWrap.querySelectorAll('.chip').forEach(e=>e.remove());
       list.forEach((c,idx)=>{
         const el = document.createElement('div');
@@ -454,8 +462,8 @@ const CLOUD = {
         });
         el.querySelector('.x').addEventListener('click',(ev)=>{
           ev.stopPropagation();
-          const arr = JSON.parse(localStorage.getItem('budget_quick_items')||'[]');
-          arr.splice(idx,1); localStorage.setItem('budget_quick_items', JSON.stringify(arr));
+          const arr = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
+          arr.splice(idx,1); localStorage.setItem(LS_QUICK(), JSON.stringify(arr));
           loadChips();
         });
         chipsWrap.insertBefore(el, addChipBtn);
@@ -465,16 +473,21 @@ const CLOUD = {
     /* ====== MOLN (AUTOSAVE) ====== */
     let isLoadingFromCloud = false;
     function payload(){ return { rows, salary: Number(salary)||0, updatedAt: Date.now() }; }
+
     async function cloudSave(){
       if(!cloudEnabled() || isLoadingFromCloud) return;
       try{
         const form = new URLSearchParams();
-        form.set('op','save'); form.set('key', getKey()); form.set('secret', CLOUD.secret||'');
+        form.set('op','save');
+        form.set('key', cloudKey());
+        form.set('secret', CLOUD.secret||'');
         form.set('data', JSON.stringify(payload()));
         const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
         await res.text();
         cloudInfo.textContent = 'Autosparat ✔︎';
-      }catch(err){ cloudInfo.textContent = 'Kunde inte autospara'; }
+      }catch(err){
+        cloudInfo.textContent = 'Kunde inte autospara';
+      }
     }
     const cloudSaveDebounced = debounce(cloudSave, 1000);
 
@@ -482,12 +495,12 @@ const CLOUD = {
       if(!cloudEnabled()) return;
       isLoadingFromCloud = true;
       try{
-        const form = new URLSearchParams();
-        form.set('op','load'); form.set('key', getKey()); form.set('secret', CLOUD.secret||'');
-        const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
+        const url = `${CLOUD.endpoint}?op=load&key=${encodeURIComponent(cloudKey())}&secret=${encodeURIComponent(CLOUD.secret||'')}`;
+        const res = await fetch(url, { method:'GET' });
         const text = await res.text();
         let json; try{ json = JSON.parse(text); }catch(_){}
-        const data = json && (json.data || json);
+        // Stöd både {ok:true,data:{...}} och direkt {rows:[...],salary:n}
+        const data = (json && json.ok && json.data) ? json.data : json;
         if(data && Array.isArray(data.rows)){
           rows = data.rows.map(r=>({
             category:r.category||'',
@@ -498,19 +511,26 @@ const CLOUD = {
           }));
           salary = Number(data.salary)||0;
           salaryInput.value = salary || '';
+          cloudInfo.textContent = 'Moln laddat';
+        }else{
+          cloudInfo.textContent = 'Ingen molndata (än)';
         }
-      }catch(err){ console.warn('Moln load fel:', err); }
-      finally{ render(); updateTotals(); isLoadingFromCloud = false; }
+      }catch(err){
+        console.warn('Moln load fel:', err);
+        cloudInfo.textContent = 'Molnfel vid laddning';
+      }finally{
+        render(); updateTotals(); isLoadingFromCloud = false;
+      }
     }
 
-    /* ====== LOCAL SAVE ====== */
+    /* ====== LOCAL SAVE (per key) ====== */
     function saveLocal(){
-      localStorage.setItem('budget_rows_v1', JSON.stringify(rows));
-      localStorage.setItem('budget_salary_v1', String(Number(salary)||0));
+      localStorage.setItem(LS_ROWS(), JSON.stringify(rows));
+      localStorage.setItem(LS_SALARY(), String(Number(salary)||0));
     }
     function loadLocal(){
-      try{ const r = JSON.parse(localStorage.getItem('budget_rows_v1')||'[]'); if(Array.isArray(r)) rows = r; }catch(_) {}
-      salary = Number(localStorage.getItem('budget_salary_v1')||0) || 0;
+      try{ const r = JSON.parse(localStorage.getItem(LS_ROWS())||'[]'); if(Array.isArray(r)) rows = r; }catch(_) {}
+      salary = Number(localStorage.getItem(LS_SALARY())||0) || 0;
       salaryInput.value = salary || '';
     }
 
@@ -521,21 +541,21 @@ const CLOUD = {
       loadLocal();
       cloudLoad();
       render(); updateTotals();
-
       salaryInput.addEventListener('input', ()=>{
         salary = Number(salaryInput.value)||0;
         saveLocal(); cloudSaveDebounced(); updateTotals();
       });
-
       document.addEventListener('visibilitychange', ()=>{
         if(document.visibilityState==='hidden'){ saveLocal(); cloudSave(); setUnlockTs(); }
       });
+      // visa vilken moln-nyckel som används
+      cloudInfo.textContent = `Moln-nyckel: ${cloudKey()}`;
     }
 
     /* ====== RENDER ====== */
     function autoGrow(el){
       el.style.height = 'auto';
-      const h = Math.min(160, Math.max(48, el.scrollHeight+2));
+      const h = Math.min(200, Math.max(48, el.scrollHeight+2));
       el.style.height = h + 'px';
     }
 
@@ -579,7 +599,6 @@ const CLOUD = {
         tbody.appendChild(tr);
       });
       attachEvents();
-      // auto-gro alla textarea
       tbody.querySelectorAll('textarea.note-input').forEach(t=>autoGrow(t));
     }
 
