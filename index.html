@@ -575,17 +575,17 @@
       moveChip(absFrom, sec, newIndex);
     }
 
-    /* NYTT: flytta upp/ner (mellan sektioner) */
+    /* Flytta upp/ner mellan sektioner */
     function moveChipToAdjacentSection(absFrom, dir){
       const list = items();
       const secs = loadSections();
       const {sec, index} = secIndexOfAbs(absFrom, list);
       let si = secs.findIndex(s=>s.id===sec); if(si<0) si=0;
       const newSi = dir==='up' ? si-1 : si+1;
-      if(newSi<0 || newSi>=secs.length) return; // utanför gräns -> ignorera
+      if(newSi<0 || newSi>=secs.length) return;
       const newSecId = secs[newSi].id;
       const targetCount = list.filter(x=>x.sec===newSecId).length;
-      const toIndex = Math.min(index, targetCount); // försök behålla samma position
+      const toIndex = Math.min(index, targetCount);
       moveChip(absFrom, newSecId, toIndex);
     }
 
@@ -610,14 +610,13 @@
       bin.setAttribute('data-sec', sec.id);
       box.appendChild(bin);
 
-      // dragover/drop för bin (fix: exakt placering där du släpper)
+      // Dragover/drop för exakt placering
       bin.addEventListener('dragover', (e)=>{
         e.preventDefault();
         const chips = [...bin.querySelectorAll('.chip[data-abs]')];
         if(chips.length) bin.classList.remove('empty');
         const x = e.clientX, y = e.clientY;
         let after = null;
-        // hitta närmaste chip under musen och avgör före/efter på radens mitt
         for(const child of chips){
           const rect = child.getBoundingClientRect();
           if(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom){
@@ -634,8 +633,6 @@
         e.preventDefault();
         if(dragFromAbs==null) return;
         const toSec = bin.getAttribute('data-sec');
-
-        // räkna hur många riktiga chips (med data-abs) som ligger före placeholdern
         let toIndex = 0;
         for(const child of bin.children){
           if(child===ph) break;
@@ -645,7 +642,7 @@
         cleanupPlaceholder();
       });
 
-      // tools
+      // Verktyg
       btnRename.onclick = ()=>{
         const name = prompt('Nytt namn på sektion:', sec.name);
         if(!name) return;
@@ -695,7 +692,7 @@
           <span class="x" title="Ta bort">×</span>
         `;
 
-        // klick = lägg till rad
+        // Klick = lägg till rad
         el.addEventListener('click',(ev)=>{
           const t = ev.target;
           if(t.classList.contains('x') || t.classList.contains('edit') || t.classList.contains('handle') || t.classList.contains('mv')) return;
@@ -703,20 +700,20 @@
           render(); updateTotals(); saveLocal(); cloudSaveDebounced();
         });
 
-        // ta bort
+        // Ta bort knapp
         el.querySelector('.x').addEventListener('click',(ev)=>{
           ev.stopPropagation();
           const arr = items();
           arr.splice(absIdx,1); saveItems(arr); loadChips();
         });
 
-        // redigera
+        // Redigera knapp
         el.querySelector('.edit').addEventListener('click',(ev)=>{
           ev.stopPropagation();
           openChipModal(absIdx);
         });
 
-        // pilar
+        // Pilar
         el.querySelectorAll('.mv').forEach(btn=>{
           btn.addEventListener('click', (ev)=>{
             ev.stopPropagation();
@@ -728,7 +725,7 @@
           });
         });
 
-        // DnD
+        // Drag & drop
         el.addEventListener('dragstart', (e)=>{
           dragFromAbs = absIdx;
           el.classList.add('dragging');
@@ -748,14 +745,14 @@
       });
     }
 
-    // sortläge (visar pilar i både toolbaren och sektionerna)
-sortChipsBtn.addEventListener('click', ()=>{
-  sortChipsBtn.classList.toggle('active');
-  chipsWrap.classList.toggle('sort-mode');     // för ev. chips i toolbar
-  chipSections.classList.toggle('sort-mode');  // gör att pilarna syns i sektionerna
-});
+    // Sortläge (pilar i toolbar och sektioner)
+    sortChipsBtn.addEventListener('click', ()=>{
+      sortChipsBtn.classList.toggle('active');
+      chipsWrap.classList.toggle('sort-mode');     // ev. chips i toolbar
+      chipSections.classList.toggle('sort-mode');  // pilar i sektionerna
+    });
 
-    // ny sektion
+    // Ny sektion
     addSectionBtn.addEventListener('click', ()=>{
       const name = prompt('Namn på ny sektion:', 'Ny sektion');
       if(!name) return;
