@@ -34,45 +34,26 @@
     button.primary{background:var(--accent);color:#fff;border:0}
     .danger{background:#ffd7d7;border:1px solid #f1bcbc}
 
-    /* Toolbar + chips */
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px;align-items:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px; position:relative}
     .chip{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;border:1px solid var(--card-border);
-      background:#fff;cursor:pointer; user-select:none;
+      display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+      border:1px solid var(--card-border);background:#fff;cursor:pointer
     }
     .chip .x{font-weight:900;opacity:.55;cursor:pointer}
-    .chip .label small{opacity:.65}
-    .chip .edit, .chip .handle, .chip .mv{
-      font-weight:700; opacity:.7; cursor:pointer; padding:0 4px; border-radius:6px;
+    .chip .edit{font-weight:900;opacity:.65;cursor:pointer; margin-left:2px}
+    .chip .grip{display:none;margin-right:6px;font-weight:900;opacity:.7}
+    .chips.reorder .chip{cursor:grab; user-select:none}
+    .chips.reorder .chip .grip{display:inline-block}
+    .chip.dragging{opacity:.6}
+    .chip.placeholder{
+      border:2px dashed var(--card-border);
+      background:repeating-linear-gradient(45deg,#fff,#fff 6px,#f8fbfc 6px,#f8fbfc 12px);
     }
-    .chip .handle{ cursor:grab }
-    .chip.dragging{ opacity:.35 }
-    .chip.placeholder{ border:2px dashed var(--card-border); background:transparent; cursor:default; padding:6px 12px }
-
-    /* Sortläge: visa pilar */
-    .chips.sort-mode .mv{ display:inline-block }
-    .mv{ display:none }
-    #sortChipsBtn.active{ background:#e7f6f8; border-color:#bfe5ea }
-
-    /* Sektioner */
-    .chip-sections{ display:grid; gap:12px; }
-    .chip-section{
-      background:#fff; border:1px solid var(--card-border); border-radius:12px;
-      padding:10px;
-    }
-    .chip-section .sec-head{
-      display:flex; align-items:center; gap:8px; margin-bottom:8px;
-    }
-    .chip-section .sec-head h4{
-      margin:0; font-size:14px; font-weight:800; color:#24515a;
-    }
-    .chip-section .sec-head .sec-tools{ margin-left:auto; display:flex; gap:6px; }
-    .chip-bin{
-      display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:40px;
-    }
-    .chip-bin.empty::after{
-      content:'Släpp snabbknappar här'; color:#86a6ab; font-size:13px;
+    .drag-ghost{
+      position:fixed; left:0; top:0; z-index:100002;
+      pointer-events:none; opacity:.9;
+      box-shadow:0 12px 26px rgba(0,0,0,.18);
+      transform:rotate(.5deg)
     }
 
     .salary-box{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
@@ -86,6 +67,7 @@
     .row-actions{display:flex;gap:6px;flex-wrap:wrap}
     .row-actions button{padding:8px 10px;min-height:40px}
 
+    /* BRED OCH LÄTTLÄST ANTECKNING */
     th.col-note{width:520px}
     td.col-note textarea.note-input{
       width:100%; min-height:48px; max-height:200px; resize:vertical;
@@ -94,12 +76,13 @@
       overflow:auto; white-space:pre-wrap
     }
 
+    /* övriga inputs */
     td input[type="text"],
     td input[type="number"],
     td select{
       width:100%; box-sizing:border-box;
       border:1px solid var(--card-border);
-      background:#fff; color:#073642;
+      background:#fff; color:var(--card-text);
       border-radius:10px; padding:10px 12px;
       font-size:16px; line-height:1.25; min-height:44px;
       appearance:none;
@@ -125,6 +108,7 @@
     .c-balance{background:#f6f7ff;border-color:#d7defa}
     .c-buffer{background:#f1f7ff;border-color:#cfe3ff}
 
+    /* LÅS */
     .lock{position:fixed;inset:0;display:none;place-items:center;z-index:100000;
       backdrop-filter:blur(8px);background:rgba(10,25,30,.78)}
     .lock.open{display:grid}
@@ -136,9 +120,11 @@
     .kbd button{font-size:18px;min-height:52px;border-radius:14px}
     .hint{font-size:12px;color:#777}
 
+    /* DELNINGSRAD */
     .live-link{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
-    .live-link input{flex:1;min-width:260px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:#fff;color:#073642;min-height:44px}
+    .live-link input{flex:1;min-width:260px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:#fff;color:var(--card-text);min-height:44px}
 
+    /* MODAL: snabbknapp */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100001}
     .modal.open{display:flex}
     .modal-card{width:min(92vw,560px);background:#fff;border:1px solid var(--card-border);border-radius:16px;padding:16px 16px 12px}
@@ -168,14 +154,11 @@
       <button id="clearMemBtn">Nollställ minne</button>
     </div>
 
-    <!-- Snabbknappar: toolbar -->
+    <!-- Snabbknappar -->
     <div class="chips" id="chips">
       <button id="addChipBtn" title="Lägg till snabbknapp">+ Lägg till snabbknapp</button>
-      <button id="sortChipsBtn" title="Aktivera sortering (pilar)">Sortera</button>
-      <button id="addSectionBtn" title="Skapa ny sektion för snabbknappar">+ Ny sektion</button>
+      <button id="reorderBtn" title="Sortera/flytta snabbknappar">Sortera</button>
     </div>
-    <!-- Sektioner för placering -->
-    <div class="chip-sections" id="chipSections"></div>
 
     <!-- Delningslänk -->
     <div class="live-link">
@@ -296,10 +279,6 @@
             <option>Annat</option>
           </select>
         </div>
-        <div>
-          <label>Sektion</label>
-          <select id="mSection"></select>
-        </div>
         <div class="full">
           <div class="row">
             <label style="margin:0">Anteckningar</label>
@@ -318,9 +297,10 @@
   <script>
   (function(){
     /* ====== KONFIG ====== */
+    // ENDPOINT för BUDGET-moln (din Apps Script-webbapp för Budget)
     const CLOUD = {
       endpoint: 'https://script.google.com/macros/s/AKfycbzgA6bjMpMr8OF-YTdSHKGkfhBj_JNg0RgBD8gxrFozUMbOT2-dLz4zYq3Wp2ZO7fyz-Q/exec',
-      secret:   'BudgetSecret123'
+      secret:   'BudgetSecret123' // valfritt; lämna tomt om din doGet/doPost inte kräver det
     };
 
     /* ====== HJÄLPARE ====== */
@@ -334,12 +314,14 @@
       }
       return k;
     }
+    // Moln-nyckel => isolerar Budget från Varukorgen även om ?key= skulle vara samma
     function cloudKey(){ return 'budget_' + getKey(); }
-    const LS_ROWS    = ()=>`budget_rows_v2_${getKey()}`;
-    const LS_SALARY  = ()=>`budget_salary_v2_${getKey()}`;
-    const LS_MEMCAT  = ()=>`budget_cat_memory_v2_${getKey()}`;
-    const LS_QUICK   = ()=>`budget_quick_items_v2_${getKey()}`;      // snabbknappar
-    const LS_SECTS   = ()=>`budget_quick_sections_v1_${getKey()}`;   // sektioner
+
+    // LocalStorage nycklar per budget-key
+    const LS_ROWS   = ()=>`budget_rows_v2_${getKey()}`;
+    const LS_SALARY = ()=>`budget_salary_v2_${getKey()}`;
+    const LS_MEMCAT = ()=>`budget_cat_memory_v2_${getKey()}`;
+    const LS_QUICK  = ()=>`budget_quick_items_v2_${getKey()}`; // snabbknappar per budget
 
     function cloudEnabled(){ return !!CLOUD.endpoint && !!cloudKey(); }
     function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
@@ -357,9 +339,7 @@
 
     const chipsWrap = document.getElementById('chips');
     const addChipBtn = document.getElementById('addChipBtn');
-    const sortChipsBtn = document.getElementById('sortChipsBtn');
-    const addSectionBtn = document.getElementById('addSectionBtn');
-    const chipSections = document.getElementById('chipSections');
+    const reorderBtn = document.getElementById('reorderBtn');
 
     const totalIncomeEl   = document.getElementById('totalIncome');
     const totalExpenseEl  = document.getElementById('totalExpense');
@@ -383,7 +363,6 @@
     const mAmount = document.getElementById('mAmount');
     const mType = document.getElementById('mType');
     const mPay = document.getElementById('mPay');
-    const mSection = document.getElementById('mSection');
     const mNote = document.getElementById('mNote');
     const mMirror = document.getElementById('mMirror');
     const mCancel = document.getElementById('mCancel');
@@ -392,6 +371,11 @@
     /* ====== DATA ====== */
     let rows = [];
     let salary = 0;
+
+    /* ====== CHIP-STATE ====== */
+    let reorderMode = false;
+    let currentEditIndex = null; // null = skapa ny, >=0 = redigera denna
+    let dragState = null;        // aktiv drag (ghost, placeholder, fromIdx, shift)
 
     /* ====== LÅS ====== */
     const LOCK = { pin:'8987', timeoutMs: 60*60*1000 };
@@ -435,7 +419,7 @@
     copyBtn.onclick = ()=> copyLiveLinkBtn.click();
     updateShareLink();
 
-    /* ====== KATEGORI-MINNE ====== */
+    /* ====== KATEGORI-MINNE (per budget-key) ====== */
     function loadCategoryMemory(){
       let arr = []; try{ arr = JSON.parse(localStorage.getItem(LS_MEMCAT())||'[]'); }catch(_){}
       if(!Array.isArray(arr)) arr = [];
@@ -455,51 +439,43 @@
     function clearCategoryMemory(){ localStorage.removeItem(LS_MEMCAT()); loadCategoryMemory(); }
     clearMemBtn.onclick = ()=>{ if(confirm('Rensa endast kategori-minnet? (påverkar inte dina rader)')) clearCategoryMemory(); };
 
-    /* ====== SEKTIONER ====== */
-    function uid(){ return 'sec_' + Math.random().toString(36).slice(2,9); }
-    function loadSections(){
-      let secs=[]; try{ secs = JSON.parse(localStorage.getItem(LS_SECTS())||'[]'); }catch(_){}
-      if(!Array.isArray(secs)) secs=[];
-      if(secs.length===0){ secs=[{id:'sec_default', name:'Snabbknappar'}]; localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
-      return secs;
+    /* ====== SNABBKNAPPAR (per budget-key) ====== */
+    function getQuickList(){
+      try{ const a = JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); return Array.isArray(a)?a:[]; }
+      catch(_){ return []; }
     }
-    function saveSections(secs){ localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
-    function ensureSectionOptions(selectEl){
-      const secs = loadSections();
-      selectEl.innerHTML = secs.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
-    }
+    function setQuickList(list){ localStorage.setItem(LS_QUICK(), JSON.stringify(list||[])); }
 
-    /* ====== CHIP-MODAL (ny + redigera) ====== */
-    let editingChipAbs = -1; // absolut index i listan, -1 = ny
-    function openChipModal(absIndex){
-      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      ensureSectionOptions(mSection);
-      editingChipAbs = (typeof absIndex==='number' && absIndex>=0) ? absIndex : -1;
-      if(editingChipAbs >= 0 && list[editingChipAbs]){
-        const c = list[editingChipAbs];
+    function openChipModal(editIdx=null){
+      currentEditIndex = (typeof editIdx==='number' && editIdx>=0) ? editIdx : null;
+      const list = getQuickList();
+
+      if(currentEditIndex===null){
+        chipTitle.textContent = 'Ny snabbknapp';
+        mLabel.value = ''; mAmount.value=''; mType.value='Utgift'; mPay.value=''; mNote.value='';
+        mMirror.checked = false;
+      } else {
         chipTitle.textContent = 'Redigera snabbknapp';
+        const c = list[currentEditIndex] || {};
         mLabel.value = c.label || '';
         mAmount.value = Number(c.amount||0) || '';
-        mType.value = (c.type==='Inkomst'?'Inkomst':'Utgift');
+        mType.value = (c.type==='Inkomst') ? 'Inkomst' : 'Utgift';
         mPay.value = c.pay || '';
-        mSection.value = c.sec || 'sec_default';
         mMirror.checked = false;
         mNote.value = c.note || '';
-      }else{
-        chipTitle.textContent = 'Ny snabbknapp';
-        mLabel.value=''; mAmount.value=''; mType.value='Utgift'; mPay.value='';
-        mSection.value = 'sec_default';
-        mMirror.checked=false; mNote.value='';
       }
       chipModal.classList.add('open');
       mLabel.focus();
     }
     function closeChipModal(){ chipModal.classList.remove('open'); }
-    document.getElementById('addChipBtn').addEventListener('click', ()=>openChipModal(-1));
+
+    addChipBtn.addEventListener('click', ()=> openChipModal(null));
     mCancel.addEventListener('click', closeChipModal);
     chipModal.addEventListener('click', (e)=>{ if(e.target===chipModal) closeChipModal(); });
+
     mMirror.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
     mPay.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
+
     mSave.addEventListener('click', ()=>{
       const label = mLabel.value.trim();
       if(!label){ alert('Skriv en kategori.'); mLabel.focus(); return; }
@@ -508,245 +484,163 @@
         amount: Number(mAmount.value)||0,
         type: mType.value==='Inkomst' ? 'Inkomst' : 'Utgift',
         pay: mPay.value || '',
-        sec: mSection.value || 'sec_default',
         note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
-      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      if(editingChipAbs >= 0 && list[editingChipAbs]){
-        list[editingChipAbs] = obj;
-      }else{
-        list.push(obj);
-      }
-      localStorage.setItem(LS_QUICK(), JSON.stringify(list));
+      const list = getQuickList();
+      if(currentEditIndex===null){ list.push(obj); }
+      else { list[currentEditIndex] = obj; }
+      setQuickList(list);
       saveCategoryToMemory(label);
       loadChips();
       closeChipModal();
     });
 
-    /* ====== SNABBKNAPPAR: render, DnD, sort-läge, sektioner ====== */
-    let ph = null; // placeholder element
-    let dragFromAbs = null; // absolut index i listan
-    function makePlaceholder(){ const e=document.createElement('div'); e.className='chip placeholder'; e.textContent=' '; return e; }
-
-    function items(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); }catch(_){a=[]}
-      if(!Array.isArray(a)) a=[]; // bakåtkomp.
-      // fyll saknad sec
-      a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; });
-      return a;
-    }
-    function saveItems(a){ localStorage.setItem(LS_QUICK(), JSON.stringify(a)); }
-
-    function absoluteInsertIndexForSection(secId, secIndex, list){
-      // räkna fram plats i den platta listan där secIndex i secId börjar
-      let count=0;
-      for(let i=0;i<list.length;i++){
-        if(list[i].sec===secId){
-          if(count===secIndex) return i;
-          count++;
-        }
-      }
-      // annars: efter sista i sektionen
-      let last=-1;
-      for(let i=0;i<list.length;i++) if(list[i].sec===secId) last=i;
-      return (last>=0)? (last+1) : list.length;
-    }
-
-    function secIndexOfAbs(absIndex, list){
-      const sec = list[absIndex].sec;
-      let idx=0;
-      for(let i=0;i<absIndex;i++){
-        if(list[i].sec===sec) idx++;
-      }
-      return { sec, index: idx };
-    }
-
-    function moveChip(absFrom, toSecId, toSecIndex){
-      let list = items();
-      if(absFrom<0 || absFrom>=list.length) return;
-      const [item] = list.splice(absFrom,1);
-      item.sec = toSecId;
-      const insertAt = absoluteInsertIndexForSection(toSecId, toSecIndex, list);
-      list.splice(insertAt, 0, item);
-      saveItems(list);
+    function setReorderMode(on){
+      reorderMode = !!on;
+      chipsWrap.classList.toggle('reorder', reorderMode);
+      reorderBtn.textContent = reorderMode ? 'Klar' : 'Sortera';
       loadChips();
     }
+    reorderBtn.addEventListener('click', ()=> setReorderMode(!reorderMode));
 
-    function moveChipBy(absFrom, deltaWithinSec){
-      let list = items();
-      const {sec, index} = secIndexOfAbs(absFrom, list);
-      const chipsInSec = list.filter(x=>x.sec===sec).length;
-      const newIndex = Math.max(0, Math.min(chipsInSec-1, index+deltaWithinSec));
-      moveChip(absFrom, sec, newIndex);
-    }
+    function makeChipEl(c, idx){
+      const el = document.createElement('div');
+      el.className = 'chip';
+      el.dataset.i = idx;
 
-    function renderSection(sec){
-      const box = document.createElement('div');
-      box.className='chip-section';
-      box.setAttribute('data-sec', sec.id);
+      const tags = [c.type||'Utgift', c.pay||'−'].filter(Boolean).join(' · ');
+      el.innerHTML = `
+        <span class="grip" aria-hidden="true">≡</span>
+        <span class="txt">${escapeHtml(c.label)} <small style="opacity:.7">(${escapeHtml(tags)})</small></span>
+        <span class="edit" title="Redigera">✎</span>
+        <span class="x" title="Ta bort" data-i="${idx}">×</span>
+      `;
 
-      const head = document.createElement('div');
-      head.className='sec-head';
-      head.innerHTML = `<h4>${escapeHtml(sec.name)}</h4>`;
-      const tools = document.createElement('div');
-      tools.className='sec-tools';
-      const btnRename = document.createElement('button'); btnRename.textContent='Byt namn';
-      const btnDelete = document.createElement('button'); btnDelete.textContent='Ta bort';
-      tools.appendChild(btnRename); tools.appendChild(btnDelete);
-      head.appendChild(tools);
-      box.appendChild(head);
-
-      const bin = document.createElement('div');
-      bin.className='chip-bin empty';
-      bin.setAttribute('data-sec', sec.id);
-      box.appendChild(bin);
-
-      // dragover/drop för bin
-      bin.addEventListener('dragover', (e)=>{
-        e.preventDefault();
-        const chips = [...bin.querySelectorAll('.chip[data-abs]')];
-        if(chips.length) bin.classList.remove('empty');
-        const x = e.clientX;
-        let after = null;
-        for(const child of chips){
-          const rect = child.getBoundingClientRect();
-          const mid = rect.left + rect.width/2;
-          if(x < mid){ after = child; break; }
-        }
-        if(!ph) ph = makePlaceholder();
-        if(after) bin.insertBefore(ph, after);
-        else bin.appendChild(ph);
-      });
-      bin.addEventListener('drop', (e)=>{
-        e.preventDefault();
-        if(dragFromAbs==null) return;
-        const toSec = bin.getAttribute('data-sec');
-        // index = hur många chip före placeholder
-        const siblings = [...bin.children].filter(el=> el.classList && el.classList.contains('chip') && el.hasAttribute('data-abs'));
-        let toIndex = siblings.length;
-        if(ph && ph.parentNode===bin){
-          toIndex = [...bin.children].filter(el=> el.classList && el.classList.contains('chip') && el.hasAttribute('data-abs')).indexOf(ph);
-          if(toIndex<0) toIndex = siblings.length;
-        }
-        moveChip(dragFromAbs, toSec, toIndex);
-        cleanupPlaceholder();
-      });
-
-      // tools
-      btnRename.onclick = ()=>{
-        const name = prompt('Nytt namn på sektion:', sec.name);
-        if(!name) return;
-        const secs = loadSections();
-        const i = secs.findIndex(s=>s.id===sec.id);
-        if(i>-1){ secs[i].name = name.trim(); saveSections(secs); loadChips(); }
-      };
-      btnDelete.onclick = ()=>{
-        const list = items();
-        if(list.some(x=>x.sec===sec.id)){ alert('Sektionen är inte tom. Flytta eller ta bort snabbknappar först.'); return; }
-        const secs = loadSections().filter(s=>s.id!==sec.id);
-        if(secs.length===0){ alert('Minst en sektion krävs.'); return; }
-        saveSections(secs); loadChips();
-      };
-
-      return box;
-    }
-
-    function cleanupPlaceholder(){
-      if(ph && ph.parentNode) ph.parentNode.removeChild(ph);
-      ph=null; dragFromAbs=null;
-    }
-
-    function loadChips(){
-      chipSections.innerHTML='';
-      const secs = loadSections();
-      // Bygg sektioner
-      secs.forEach(sec=> chipSections.appendChild(renderSection(sec)));
-
-      const list = items();
-      // Lägg ut chips i respektive bin i list-ordning
-      list.forEach((c,absIdx)=>{
-        const bin = chipSections.querySelector(`.chip-bin[data-sec="${c.sec||'sec_default'}"]`) || chipSections.querySelector('.chip-bin[data-sec="sec_default"]');
-        if(bin) bin.classList.remove('empty');
-        const el = document.createElement('div');
-        el.className='chip';
-        el.setAttribute('draggable','true');
-        el.setAttribute('data-abs', String(absIdx));
-
-        const tags = [c.type||'Utgift', c.pay||'−'].filter(Boolean).join(' · ');
-        el.innerHTML = `
-          <span class="handle" title="Dra för att flytta">≡</span>
-          <span class="label">${escapeHtml(c.label)} <small>(${escapeHtml(tags)})</small></span>
-          <span class="mv" data-mv="left" title="Flytta vänster">←</span>
-          <span class="mv" data-mv="right" title="Flytta höger">→</span>
-          <span class="edit" title="Redigera">✎</span>
-          <span class="x" title="Ta bort">×</span>
-        `;
-
-        // klick = lägg till rad
+      // Lägg till rad – bara om vi inte är i sorteringsläge och inte klickar på edit/x
+      if(!reorderMode){
         el.addEventListener('click',(ev)=>{
-          const t = ev.target;
-          if(t.classList.contains('x') || t.classList.contains('edit') || t.classList.contains('handle') || t.classList.contains('mv')) return;
+          if(ev.target.classList.contains('x') || ev.target.classList.contains('edit')) return;
           rows.push({ category:c.label||'', amount:Number(c.amount||0), type:(c.type||'Utgift'), pay:(c.pay||''), note:(c.note||'') });
           render(); updateTotals(); saveLocal(); cloudSaveDebounced();
         });
+      }
 
-        // ta bort
-        el.querySelector('.x').addEventListener('click',(ev)=>{
-          ev.stopPropagation();
-          const arr = items();
-          arr.splice(absIdx,1); saveItems(arr); loadChips();
-        });
-
-        // redigera
-        el.querySelector('.edit').addEventListener('click',(ev)=>{
-          ev.stopPropagation();
-          openChipModal(absIdx);
-        });
-
-        // pilar (inom sektion)
-        el.querySelectorAll('.mv').forEach(btn=>{
-          btn.addEventListener('click', (ev)=>{
-            ev.stopPropagation();
-            const dir = btn.getAttribute('data-mv');
-            moveChipBy(absIdx, dir==='left' ? -1 : +1);
-          });
-        });
-
-        // DnD
-        el.addEventListener('dragstart', (e)=>{
-          dragFromAbs = absIdx;
-          el.classList.add('dragging');
-          try{ e.dataTransfer.setData('text/plain', String(absIdx)); }catch(_){}
-          e.dataTransfer.effectAllowed='move';
-        });
-        el.addEventListener('dragend', ()=>{
-          el.classList.remove('dragging');
-          cleanupPlaceholder();
-        });
-
-        bin && bin.appendChild(el);
+      // Redigera
+      el.querySelector('.edit').addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        openChipModal(idx);
       });
 
-      // markera tomma bins
-      chipSections.querySelectorAll('.chip-bin').forEach(b=>{
-        if(!b.querySelector('.chip')) b.classList.add('empty');
+      // Ta bort
+      el.querySelector('.x').addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        const list = getQuickList();
+        const i = +ev.currentTarget.dataset.i;
+        list.splice(i,1);
+        setQuickList(list);
+        loadChips();
+      });
+
+      // Drag-handtag i sorteringsläge
+      if(reorderMode){
+        const handle = el.querySelector('.grip') || el;
+        handle.style.touchAction = 'none';
+        handle.addEventListener('pointerdown', (e)=> startChipDrag(e, el), {passive:false});
+      }
+      return el;
+    }
+
+    function loadChips(){
+      const list = getQuickList();
+      chipsWrap.querySelectorAll('.chip').forEach(e=>e.remove());
+      list.forEach((c,idx)=>{
+        const el = makeChipEl(c, idx);
+        chipsWrap.insertBefore(el, addChipBtn);
       });
     }
 
-    // sortläge (visar pilar)
-    sortChipsBtn.addEventListener('click', ()=>{
-      sortChipsBtn.classList.toggle('active');
-      chipsWrap.classList.toggle('sort-mode');
-    });
+    /* ====== Drag & drop för chips ====== */
+    function startChipDrag(e, chipEl){
+      e.preventDefault();
+      const fromIdx = +chipEl.dataset.i;
 
-    // ny sektion
-    addSectionBtn.addEventListener('click', ()=>{
-      const name = prompt('Namn på ny sektion:', 'Ny sektion');
-      if(!name) return;
-      const secs = loadSections();
-      secs.push({id:uid(), name:name.trim()});
-      saveSections(secs);
+      // Ghost
+      const rect = chipEl.getBoundingClientRect();
+      const ghost = chipEl.cloneNode(true);
+      ghost.classList.add('drag-ghost');
+      ghost.style.width  = rect.width + 'px';
+      ghost.style.height = rect.height + 'px';
+      const startX = e.clientX, startY = e.clientY;
+      const shiftX = startX - rect.left, shiftY = startY - rect.top;
+      positionGhost(ghost, startX - shiftX, startY - shiftY);
+      document.body.appendChild(ghost);
+
+      // Placeholder
+      const placeholder = document.createElement('div');
+      placeholder.className = 'chip placeholder';
+      placeholder.style.width  = rect.width + 'px';
+      placeholder.style.height = rect.height + 'px';
+      chipEl.replaceWith(placeholder);
+
+      dragState = { ghost, placeholder, fromIdx, shiftX, shiftY };
+
+      document.addEventListener('pointermove', onChipDragMove, {passive:false});
+      document.addEventListener('pointerup', onChipDragEnd, {once:true});
+    }
+
+    function positionGhost(ghost, left, top){
+      ghost.style.transform = 'none';
+      ghost.style.left = left + 'px';
+      ghost.style.top  = top  + 'px';
+    }
+
+    function onChipDragMove(e){
+      if(!dragState) return;
+      e.preventDefault();
+      const { ghost, shiftX, shiftY, placeholder } = dragState;
+      positionGhost(ghost, e.clientX - shiftX, e.clientY - shiftY);
+
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if(!el) return;
+
+      let overChip = el.closest('.chip');
+      if(overChip === placeholder) overChip = null;
+
+      if(overChip && chipsWrap.contains(overChip)){
+        const r = overChip.getBoundingClientRect();
+        const before = e.clientY < r.top + r.height/2; // funkar i flex-wrap
+        if(before) chipsWrap.insertBefore(placeholder, overChip);
+        else chipsWrap.insertBefore(placeholder, overChip.nextSibling);
+      }else{
+        chipsWrap.insertBefore(placeholder, addChipBtn);
+      }
+    }
+
+    function onChipDragEnd(){
+      if(!dragState) return;
+      const { ghost, placeholder, fromIdx } = dragState;
+
+      // Ny index: antal riktiga chips före placeholder
+      let newIdx = 0;
+      for(const child of chipsWrap.children){
+        if(child === addChipBtn || child === reorderBtn) break;
+        if(child === placeholder) break;
+        if(child.classList.contains('chip')) newIdx++;
+      }
+
+      const list = getQuickList();
+      if (newIdx < 0) newIdx = 0;
+      if (newIdx > list.length-1) newIdx = list.length-1;
+
+      const [moved] = list.splice(fromIdx, 1);
+      list.splice(newIdx, 0, moved);
+      setQuickList(list);
+
+      ghost.remove();
+      placeholder.replaceWith(document.createComment('chip moved'));
+      dragState = null;
       loadChips();
-    });
+    }
 
     /* ====== MOLN (AUTOSAVE) ====== */
     let isLoadingFromCloud = false;
@@ -756,8 +650,7 @@
       if(!cloudEnabled() || isLoadingFromCloud) return;
       try{
         const form = new URLSearchParams();
-        form.set('op','save');
-        form.set('key', cloudKey());
+        form.set('op','save'); form.set('key', cloudKey());
         form.set('secret', CLOUD.secret||'');
         form.set('data', JSON.stringify(payload()));
         const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
@@ -800,7 +693,7 @@
       }
     }
 
-    /* ====== LOCAL SAVE ====== */
+    /* ====== LOCAL SAVE (per key) ====== */
     function saveLocal(){
       localStorage.setItem(LS_ROWS(), JSON.stringify(rows));
       localStorage.setItem(LS_SALARY(), String(Number(salary)||0));
@@ -828,7 +721,7 @@
       cloudInfo.textContent = `Moln-nyckel: ${cloudKey()}`;
     }
 
-    /* ====== RENDER TABELL ====== */
+    /* ====== RENDER ====== */
     function autoGrow(el){
       el.style.height = 'auto';
       const h = Math.min(200, Math.max(48, el.scrollHeight+2));
@@ -914,6 +807,7 @@
       const item = rows.splice(from,1)[0]; rows.splice(to,0,item); render();
     }
 
+    /* Lägg till rad-knapp */
     addRowBtn.onclick = ()=>{
       rows.push({category:'', amount:0, type:'Utgift', pay:'', note:''});
       render(); updateTotals(); saveLocal(); cloudSaveDebounced();
@@ -921,6 +815,7 @@
       if(lastInput) lastInput.focus();
     };
 
+    /* Totals */
     function updateTotals(){
       let sumIncome = 0, sumExpense = 0;
       rows.forEach(r=>{
@@ -945,6 +840,7 @@
       bufferEl.classList.toggle('good', balance>=0);
     }
 
+    /* Dela som bild */
     async function ensureHtml2Canvas(){
       if(window.html2canvas) return;
       await new Promise((res, rej)=>{
@@ -982,6 +878,7 @@
       }catch(e){ alert('Kunde inte skapa bild: ' + e.message); }
     };
 
+    /* Nollställ (påverkar ej snabbknappar/minne) */
     resetBtn.onclick = ()=>{
       if(!confirm('Nollställa rader + lön? (Kategori-minne och snabbknappar påverkas inte)')) return;
       rows=[]; salary=0; salaryInput.value='';
@@ -989,6 +886,7 @@
     };
 
     /* GO */
+    loadChips();
     init();
   })();
   </script>
