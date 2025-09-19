@@ -529,15 +529,11 @@
     function makePlaceholder(){ const e=document.createElement('div'); e.className='chip placeholder'; e.textContent=' '; return e; }
 
     function items(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); }catch(_){a=[]}
-      if(!Array.isArray(a)) a=[]; // bakåtkomp.
-      // fyll saknad sec
-      a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; });
-      return a;
+      if(!Array.isArray(a)) a=[]; a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; }); return a;
     }
     function saveItems(a){ localStorage.setItem(LS_QUICK(), JSON.stringify(a)); }
 
     function absoluteInsertIndexForSection(secId, secIndex, list){
-      // räkna fram plats i den platta listan där secIndex i secId börjar
       let count=0;
       for(let i=0;i<list.length;i++){
         if(list[i].sec===secId){
@@ -545,7 +541,6 @@
           count++;
         }
       }
-      // annars: efter sista i sektionen
       let last=-1;
       for(let i=0;i<list.length;i++) if(list[i].sec===secId) last=i;
       return (last>=0)? (last+1) : list.length;
@@ -579,6 +574,20 @@
       moveChip(absFrom, sec, newIndex);
     }
 
+    /* NYTT: flytta upp/ner (mellan sektioner) */
+    function moveChipToAdjacentSection(absFrom, dir){
+      const list = items();
+      const secs = loadSections();
+      const {sec, index} = secIndexOfAbs(absFrom, list);
+      let si = secs.findIndex(s=>s.id===sec); if(si<0) si=0;
+      const newSi = dir==='up' ? si-1 : si+1;
+      if(newSi<0 || newSi>=secs.length) return; // utanför gräns -> ignorera
+      const newSecId = secs[newSi].id;
+      const targetCount = list.filter(x=>x.sec===newSecId).length;
+      const toIndex = Math.min(index, targetCount); // försök behålla samma position
+      moveChip(absFrom, newSecId, toIndex);
+    }
+
     function renderSection(sec){
       const box = document.createElement('div');
       box.className='chip-section';
@@ -600,17 +609,21 @@
       bin.setAttribute('data-sec', sec.id);
       box.appendChild(bin);
 
-      // dragover/drop för bin
+      // dragover/drop för bin (fix: exakt placering där du släpper)
       bin.addEventListener('dragover', (e)=>{
         e.preventDefault();
         const chips = [...bin.querySelectorAll('.chip[data-abs]')];
         if(chips.length) bin.classList.remove('empty');
-        const x = e.clientX;
+        const x = e.clientX, y = e.clientY;
         let after = null;
+        // hitta närmaste chip under musen och avgör före/efter på radens mitt
         for(const child of chips){
           const rect = child.getBoundingClientRect();
-          const mid = rect.left + rect.width/2;
-          if(x < mid){ after = child; break; }
+          if(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom){
+            const mid = rect.left + rect.width/2;
+            after = (x >= mid) ? child.nextSibling : child;
+            break;
+          }
         }
         if(!ph) ph = makePlaceholder();
         if(after) bin.insertBefore(ph, after);
@@ -620,12 +633,12 @@
         e.preventDefault();
         if(dragFromAbs==null) return;
         const toSec = bin.getAttribute('data-sec');
-        // index = hur många chip före placeholder
-        const siblings = [...bin.children].filter(el=> el.classList && el.classList.contains('chip') && el.hasAttribute('data-abs'));
-        let toIndex = siblings.length;
-        if(ph && ph.parentNode===bin){
-          toIndex = [...bin.children].filter(el=> el.classList && el.classList.contains('chip') && el.hasAttribute('data-abs')).indexOf(ph);
-          if(toIndex<0) toIndex = siblings.length;
+
+        // räkna hur många riktiga chips (med data-abs) som ligger före placeholdern
+        let toIndex = 0;
+        for(const child of bin.children){
+          if(child===ph) break;
+          if(child.classList && child.classList.contains('chip') && child.hasAttribute('data-abs')) toIndex++;
         }
         moveChip(dragFromAbs, toSec, toIndex);
         cleanupPlaceholder();
@@ -658,11 +671,9 @@
     function loadChips(){
       chipSections.innerHTML='';
       const secs = loadSections();
-      // Bygg sektioner
       secs.forEach(sec=> chipSections.appendChild(renderSection(sec)));
 
       const list = items();
-      // Lägg ut chips i respektive bin i list-ordning
       list.forEach((c,absIdx)=>{
         const bin = chipSections.querySelector(`.chip-bin[data-sec="${c.sec||'sec_default'}"]`) || chipSections.querySelector('.chip-bin[data-sec="sec_default"]');
         if(bin) bin.classList.remove('empty');
@@ -675,8 +686,10 @@
         el.innerHTML = `
           <span class="handle" title="Dra för att flytta">≡</span>
           <span class="label">${escapeHtml(c.label)} <small>(${escapeHtml(tags)})</small></span>
-          <span class="mv" data-mv="left" title="Flytta vänster">←</span>
-          <span class="mv" data-mv="right" title="Flytta höger">→</span>
+          <span class="mv" data-mv="left"  title="Flytta vänster (inom sektion)">←</span>
+          <span class="mv" data-mv="right" title="Flytta höger (inom sektion)">→</span>
+          <span class="mv" data-mv="up"    title="Flytta till sektionen ovan">↑</span>
+          <span class="mv" data-mv="down"  title="Flytta till sektionen nedan">↓</span>
           <span class="edit" title="Redigera">✎</span>
           <span class="x" title="Ta bort">×</span>
         `;
@@ -702,12 +715,15 @@
           openChipModal(absIdx);
         });
 
-        // pilar (inom sektion)
+        // pilar
         el.querySelectorAll('.mv').forEach(btn=>{
           btn.addEventListener('click', (ev)=>{
             ev.stopPropagation();
             const dir = btn.getAttribute('data-mv');
-            moveChipBy(absIdx, dir==='left' ? -1 : +1);
+            if(dir==='left')  return moveChipBy(absIdx, -1);
+            if(dir==='right') return moveChipBy(absIdx, +1);
+            if(dir==='up')    return moveChipToAdjacentSection(absIdx, 'up');
+            if(dir==='down')  return moveChipToAdjacentSection(absIdx, 'down');
           });
         });
 
@@ -726,7 +742,6 @@
         bin && bin.appendChild(el);
       });
 
-      // markera tomma bins
       chipSections.querySelectorAll('.chip-bin').forEach(b=>{
         if(!b.querySelector('.chip')) b.classList.add('empty');
       });
