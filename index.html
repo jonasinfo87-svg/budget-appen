@@ -1,397 +1,160 @@
-<!-- ======= BUDGET-APP (FAST LÄNK MED key=, INGEN ID) ======= -->
-<div id="budgetApp">
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Budgetmall</title>
   <style>
-    /* =========================
-       PREMIUM THEME med Light/Dark
-       ========================= */
-    #budgetApp{
-      /* --- Light (default) theme tokens --- */
-      --bg:#f5fbfd;
-      --bg2:#e9f4f7;
-
-      --text:#073642;        /* text på mörkare bakgrund */
-      --text-soft:#1c4a53;   /* svagare variant */
-      --text-invert:#f3fcff; /* text på "hero" / overlay */
-
-      --accent:#0d6c77;
-      --muted:#88a8ad;
-      --good:#1b8f4a;
-      --bad:#d23b3b;
-
-      --card:#ffffff;           /* vita ytor (kort, tabell, kontroller) */
-      --card-border:#d6e9eb;
-      --table-head:#0b5a64;
-
-      /* text på vita ytor (säker läsbarhet i båda teman) */
-      --card-text:#073642;
-      --card-text-soft:#24515a;
-
-      /* Mönster-intensitet */
-      --noise-o:.20;     /* brus */
-      --dots-o:.06;      /* prickar */
-      --waves-o:.07;     /* vågor */
-
+    :root{
+      --bg:#f5fbfd; --bg2:#e9f4f7;
+      --text:#073642; --text-soft:#1c4a53; --text-invert:#f3fcff;
+      --accent:#0d6c77; --muted:#88a8ad; --good:#1b8f4a; --bad:#d23b3b;
+      --card:#ffffff; --card-border:#d6e9eb; --table-head:#0b5a64;
+      --card-text:#073642; --card-text-soft:#24515a;
+    }
+    body{
+      margin:0; color:var(--text);
       font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
-      color:var(--text);
-      position:relative;
-      min-height:100vh;
-      overflow-x:hidden;
-
-      /* Grundtonad bakgrund */
       background:
         radial-gradient(1200px 800px at 15% -10%, rgba(8, 90, 100,.10), transparent 60%),
         radial-gradient(1100px 900px at 110% 110%, rgba(5, 55, 70,.10), transparent 62%),
         radial-gradient(900px 700px at 50% 120%, rgba(19, 60, 70,.09), transparent 65%),
         linear-gradient(180deg, var(--bg), var(--bg2));
-      isolation:isolate;
-
-      transition: background .35s ease, color .2s ease, filter .2s ease;
+      min-height:100vh;
     }
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
 
-    /* --- Dark overrides --- */
-    #budgetApp.dark{
-      --bg:#11242b;
-      --bg2:#18343e;
-
-      --text:#eaf6f8;           /* text ovanpå den mörka bakgrunden */
-      --text-soft:#cfe6ea;
-      --text-invert:#eefbff;    /* “hero”-text, badges osv */
-
-      --card:#ffffff;           /* behåll ljusa kort för läsbarhet */
-      --card-border:#cfe3e6;
-      --table-head:#08414e;
-
-      /* mörk text på vita ytor även i dark */
-      --card-text:#0b3b4c;
-      --card-text-soft:#2a5660;
-
-      --noise-o:.26;
-      --dots-o:.08;
-      --waves-o:.09;
-    }
-
-    /* Subtilt brus (premium-känsla) */
-    #budgetApp::before{
-      content:"";
-      position:fixed; inset:-2px; z-index:0; pointer-events:none;
-      background:url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'>\
-  <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='table' tableValues='0 0 0 0 .012 .025 .045 .032 .02 .012 0 0 0 0 0'/></feComponentTransfer></filter>\
-  <rect width='100' height='100' filter='url(#n)'/>\
-</svg>") repeat;
-      opacity:var(--noise-o);
-      mix-blend-mode:soft-light;
-      transition:opacity .2s ease;
-    }
-
-    /* Diskreta prickar + svaga vågor */
-    #budgetApp::after{
-      content:"";
-      position:fixed; inset:0; z-index:0; pointer-events:none;
-      background-image:
-        /* vågor */
-        url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='220' height='120' viewBox='0 0 220 120'>\
-  <path d='M0 60 Q55 40 110 60 T220 60' fill='none' stroke='%23ffffff' stroke-opacity='.35' stroke-width='1'/>\
-  <path d='M0 90 Q55 70 110 90 T220 90' fill='none' stroke='%23ffffff' stroke-opacity='.28' stroke-width='1'/>\
-</svg>"),
-        /* prickar */
-        url("data:image/svg+xml;utf8,\
-<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>\
-  <circle cx='2' cy='2' r='1.2' fill='%23ffffff' opacity='.9'/>\
-  <circle cx='14' cy='10' r='1' fill='%23ffffff' opacity='.8'/>\
-  <circle cx='22' cy='4' r='0.9' fill='%23ffffff' opacity='.7'/>\
-  <circle cx='8' cy='18' r='1.1' fill='%23ffffff' opacity='.8'/>\
-</svg>");
-      background-repeat:repeat, repeat;
-      background-size: 420px 240px, 24px 24px;
-      opacity:calc(var(--waves-o) + var(--dots-o));
-      mix-blend-mode:overlay;
-      transition:opacity .2s ease;
-    }
-
-    /* ===== LOGO / HEADER ===== */
-    #budgetApp .site-header{
-      position:fixed; top:14px; left:16px; z-index:10;
-      display:flex; align-items:center; gap:10px;
-      color:var(--text-invert);
-      text-shadow:0 1px 2px rgba(0,0,0,.35);
-      user-select:none;
-    }
-    #budgetApp .logo-badge{
-      width:28px;height:28px;border-radius:9px;
-      display:grid;place-items:center;
-      background:linear-gradient(135deg,#0b3b4c,#0d6c77);
-      box-shadow:0 4px 14px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.12);
-    }
-    #budgetApp .logo-badge svg{ width:18px;height:18px; fill:#fff; opacity:.95 }
-    #budgetApp .brand-name{ font-weight:800; letter-spacing:.2px; }
-
-    /* Dölj innehåll när låst */
-    #budgetApp.locked .wrap{ display:none; }
-
-    #budgetApp .wrap{max-width:1100px;margin:0 auto;padding:24px; z-index:1; position:relative;}
-
-    /* ===== KONTROLLER / KNAPPAR ===== */
-    #budgetApp .controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
-    #budgetApp button{
-      background:var(--card);
-      color:var(--card-text);
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+    button{
+      background:var(--card); color:var(--card-text);
       border:1px solid var(--card-border);
-      padding:8px 10px; border-radius:10px; cursor:pointer;
-      box-shadow:0 1px 1px rgba(0,0,0,.04);
-      transition:transform .05s ease, box-shadow .15s ease;
-      /* Viktigt: knappar ska använda ljus forms-UI även i mörkt tema */
-      color-scheme: light;
+      padding:10px 12px; border-radius:12px; cursor:pointer;
+      box-shadow:0 1px 1px rgba(0,0,0,.04); min-height:44px; font-size:16px
     }
-    #budgetApp button:active{ transform:translateY(1px); box-shadow:0 0 0 rgba(0,0,0,0); }
-    #budgetApp button.primary{background:var(--accent);color:#ffffff;border:0}
-    #budgetApp button[disabled]{ opacity:.55; cursor:not-allowed; }
-    #budgetApp .danger{background:#ffd7d7;border:1px solid #f1bcbc}
+    button.primary{background:var(--accent);color:#fff;border:0}
+    .danger{background:#ffd7d7;border:1px solid #f1bcbc}
 
-    /* ===== TABELL / KORT ===== */
-    #budgetApp .table-wrap{
-      overflow:auto;background:var(--card); padding:8px; border-radius:12px; border:1px solid var(--card-border);
-      color:var(--card-text);
-      color-scheme: light; /* tvinga ljus kontroll-UI */
-    }
-    #budgetApp table{width:100%; border-collapse:collapse; min-width:860px; background:#fff; border-radius:10px; overflow:hidden; color:var(--card-text);}
-    #budgetApp th, #budgetApp td{padding:10px 8px; border:1px solid #cfe6e9; text-align:left; vertical-align:middle;}
-    #budgetApp th{background:var(--table-head);color:#ffffff; font-weight:700;}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--card-border);background:#fff;cursor:pointer}
+    .chip .x{font-weight:900;opacity:.55;cursor:pointer}
 
-    /* Inputs/selects inne i tabellen/kort ska ha mörk text */
-    #budgetApp td input[type="text"], 
-    #budgetApp td input[type="number"], 
-    #budgetApp td select {
-      width:100%; border:0; background:transparent; padding:6px; font-size:14px;
-      color:var(--card-text);
-      color-scheme: light; /* förhindra "auto-dark" rendering */
-    }
-    #budgetApp td input::placeholder{ color:#86a6ab }
-    #budgetApp .right{text-align:right;}
+    .salary-box{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
+    .salary-box input{font-size:16px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;width:220px;min-height:44px;background:#fff;color:var(--card-text)}
 
-    /* ===== UNIVERSAL FORMS-FIXAR (autofill, option-menyer, mm) ===== */
-    #budgetApp input,
-    #budgetApp select,
-    #budgetApp textarea{
-      color:var(--card-text) !important;
-      background-color:#fff;
-      color-scheme: light;
-    }
-    #budgetApp input:-webkit-autofill,
-    #budgetApp select:-webkit-autofill,
-    #budgetApp textarea:-webkit-autofill{
-      -webkit-text-fill-color:var(--card-text) !important;
-      caret-color:var(--card-text);
-      box-shadow:0 0 0 1000px #ffffff inset; /* ta bort grön/gul bakgrund */
-    }
-    #budgetApp select option{
-      color:var(--card-text);
-      background:#fff;
+    .table-wrap{overflow:auto;background:var(--card);padding:8px;border-radius:12px;border:1px solid var(--card-border)}
+    table{width:100%;border-collapse:collapse;min-width:1180px;background:#fff;border-radius:10px;overflow:hidden;color:var(--card-text)}
+    th,td{padding:10px 8px;border:1px solid #cfe6e9;text-align:left;vertical-align:middle}
+    th{background:var(--table-head);color:#fff;font-weight:800;white-space:nowrap}
+    .right{text-align:right}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .row-actions button{padding:8px 10px;min-height:40px}
+
+    /* BRED OCH LÄTTLÄST ANTECKNING */
+    th.col-note{width:520px}
+    td.col-note textarea.note-input{
+      width:100%; min-height:48px; max-height:160px; resize:vertical;
+      box-sizing:border-box; border:1px solid var(--card-border); border-radius:10px;
+      padding:10px 12px; font-size:16px; line-height:1.35; background:#fff; color:var(--card-text);
+      overflow:auto; white-space:pre-wrap
     }
 
-    /* ===== TYPOGRAFI SMÅ TEXTER ===== */
-    #budgetApp .small{font-size:13px; color:var(--text-soft); font-weight:700;}
-    /* småtexter på vita ytor ska använda card-nyanser */
-    #budgetApp .card .small,
-    #budgetApp .table-wrap .small,
-    #budgetApp .salary-box .small,
-    #budgetApp .live-link .small,
-    #cloudControls .small{ color:var(--card-text-soft) !important; }
-
-    /* Delningslänk-etikett – normal i ljust, ljus i mörkt */
-    #budgetApp .live-link .small{ color:var(--text-soft); text-shadow:none; }
-    #budgetApp.dark .live-link .small{
-      color:#eefbff !important;
-      text-shadow:0 1px 2px rgba(0,0,0,.35);
+    /* övriga inputs */
+    td input[type="text"],
+    td input[type="number"],
+    td select{
+      width:100%; box-sizing:border-box;
+      border:1px solid var(--card-border);
+      background:#fff; color:var(--card-text);
+      border-radius:10px; padding:10px 12px;
+      font-size:16px; line-height:1.25; min-height:44px;
+      appearance:none;
     }
-    #budgetApp .live-note{font-size:12px; color:#586e75;}
-    #budgetApp.dark .live-note{ color:#eefbff; }
-    #cloudInfo{font-size:12px; color:#586e75;}
-    #budgetApp.dark #cloudInfo{ color:#eefbff; }
+    td input::placeholder{color:#86a6ab}
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
+    input[type=number]{ -moz-appearance:textfield; }
 
-    /* ===== KORT / SUM-BRICKOR ===== */
-    #budgetApp .sum-box{display:flex; flex-direction:column; gap:10px; align-items:flex-start; margin-top:12px;}
-    #budgetApp .card{
-      background:linear-gradient(180deg,#ffffff, #f7ffff);
-      color:var(--card-text);
-      border-radius:14px; padding:12px; border:1px solid var(--card-border); 
-      box-shadow:0 10px 30px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.10);
-      min-width:220px;
-      color-scheme: light;
+    .sum-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}
+    .card{
+      background:linear-gradient(180deg,#fff,#f7ffff);
+      color:var(--card-text); border-radius:16px; padding:14px;
+      border:1px solid var(--card-border); box-shadow:0 8px 24px rgba(0,0,0,.10)
     }
-    #budgetApp .big{font-size:18px;font-weight:700;}
-    #budgetApp .good{color:var(--good);} 
-    #budgetApp .bad{color:var(--bad);} 
+    .card .small{font-size:14px;font-weight:700;color:var(--card-text-soft);margin-bottom:4px}
+    .big{font-size:22px;font-weight:900;letter-spacing:.2px}
+    .good{color:var(--good)} .bad{color:var(--bad)}
+    .c-salary{background:#ffeef0;border-color:#f3c2c6}
+    .c-left{background:#fff5e7;border-color:#f6d9b5}
+    .c-income{background:#e9f8ee;border-color:#c2e9c9}
+    .c-expense{background:#ffe8ea;border-color:#f3b4b8}
+    .c-balance{background:#f6f7ff;border-color:#d7defa}
+    .c-buffer{background:#f1f7ff;border-color:#cfe3ff}
 
-    #budgetApp .row-actions{display:flex; gap:6px;}
-    #budgetApp .hint{font-size:13px;color:#e6f4f7;margin-top:10px}
+    /* LÅS */
+    .lock{position:fixed;inset:0;display:none;place-items:center;z-index:100000;
+      backdrop-filter:blur(8px);background:rgba(10,25,30,.78)}
+    .lock.open{display:grid}
+    .lock-card{width:min(92vw,560px);background:#fff;color:#0b3b4c;border:1px solid rgba(214,233,235,.9);
+      border-radius:22px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.24)}
+    .pinbox{display:flex;gap:8px;justify-content:center;margin:6px 0 12px}
+    .pinbox input{width:54px;height:54px;border-radius:12px;text-align:center;font-size:22px;letter-spacing:2px;border:2px solid #cfe3e6;background:#fff}
+    .kbd{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0}
+    .kbd button{font-size:18px;min-height:52px;border-radius:14px}
+    .hint{font-size:12px;color:#777}
 
-    /* ===== LÖNERAD ===== */
-    #budgetApp .salary-box{display:flex; gap:12px; align-items:center; margin:8px 0 14px}
-    #budgetApp .salary-box input{
-      font-size:16px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; width:220px; background:#fff; color:var(--card-text);
-      color-scheme: light;
+    /* DELNINGSRAD */
+    .live-link{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+    .live-link input{flex:1;min-width:260px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:#fff;color:var(--card-text);min-height:44px}
+
+    /* MODAL: snabbknapp */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100001}
+    .modal.open{display:flex}
+    .modal-card{width:min(92vw,560px);background:#fff;border:1px solid var(--card-border);border-radius:16px;padding:16px 16px 12px}
+    .modal h3{margin:0 0 8px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid .full{grid-column:1/-1}
+    .modal input, .modal select, .modal textarea{
+      width:100%;box-sizing:border-box;border:1px solid var(--card-border);border-radius:10px;padding:10px 12px;font-size:16px;min-height:44px
     }
-
-    /* Drag & drop */
-    #budgetApp .drag-handle{cursor:grab; user-select:none; padding:0 6px; display:inline-flex; align-items:center; justify-content:center}
-    #budgetApp tr.dragging{opacity:0.6}
-    #budgetApp tr.drag-over{outline:2px dashed var(--accent)}
-    #budgetApp .empty-row{color:#6b8a90; font-style:italic; text-align:center;}
-    #budgetApp .empty-cell{padding:18px;}
-
-    /* Färgade brickor */
-    #budgetApp .card.salary   { background:#eef5ff; border-color:#c6ddff; }
-    #budgetApp .card.income   { background:#e6ffe6; border-color:#c2e9c2; }
-    #budgetApp .card.expense  { background:#ffe6e6; border-color:#f1bcbc; }
-    #budgetApp .card.salaryLeft { background:#fff9e6; border-color:#f6e9b5; }
-    #budgetApp .card.balance,
-    #budgetApp .card.buffer   { background:#e6f7ff; border-color:#bde0f6; }
-
-    /* Hjälpbox */
-    #budgetApp details.helpbox { background:#ffffffcc; border:1px solid var(--card-border); border-radius:12px; padding:12px; margin-top:10px; backdrop-filter: blur(4px); color:var(--card-text);}
-    #budgetApp details.helpbox[open]{ background:#f7fbff; }
-    #budgetApp details.helpbox summary{ list-style:none; cursor:pointer; font-weight:700; display:flex; align-items:center; justify-content:space-between; color:var(--card-text);}
-    #budgetApp details.helpbox summary::-webkit-details-marker{ display:none; }
-    #budgetApp .helpbox-content{ color:var(--card-text); font-size:14px; }
-
-    /* Delningslänk & moln inputs */
-    #budgetApp .live-link{display:flex; gap:8px; align-items:center; margin:8px 0 0; flex-wrap:wrap}
-    #budgetApp .live-link input[type=text]{flex:1; min-width:260px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text); color-scheme: light;}
-    #cloudControls{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;}
-    #cloudControls input[type=text]{min-width:170px; padding:8px 10px; border:1px solid var(--card-border); border-radius:8px; background:#fff; color:var(--card-text); color-scheme: light;}
-
-    /* ===== LÅS-OVERLAY ===== */
-    #budgetApp .lock-overlay{
-      position:fixed; inset:0;
-      background:
-        radial-gradient(1200px 800px at 20% 10%, rgba(13,108,119,.14), transparent 60%),
-        radial-gradient(1000px 900px at 80% 90%, rgba(9,59,76,.16), transparent 65%),
-        rgba(10,25,30,.78);
-      display:flex; align-items:center; justify-content:center; z-index:99999;
-      backdrop-filter: blur(6px);
-      padding:32px;
-      color:#0b3b4c;
-    }
-    #budgetApp .lock-card{
-      background:rgba(255,255,255,.94);
-      border:1px solid rgba(214,233,235,.9);
-      border-radius:22px; 
-      padding:28px; width:100%; max-width:560px;
-      box-shadow:0 18px 60px rgba(0,0,0,.24);
-      text-align:center;
-      backdrop-filter: blur(8px);
-      color:#0b3b4c;
-    }
-    .brand{ display:flex; align-items:center; justify-content:center; gap:10px; margin:0 auto 10px; }
-    .brand .brand-lock{ width:28px; height:28px; opacity:.9; }
-    .brand .brand-text{
-      font-weight:800; font-size:20px; letter-spacing:.3px;
-      background:linear-gradient(135deg,#0b3b4c,#0d6c77);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-    }
-    #budgetApp .lock-card h3{margin:0 0 8px; font-size:26px; letter-spacing:.2px;}
-    #budgetApp .lock-card p{margin:0 0 18px; font-size:16px; color:#1e3c42;}
-
-    .pin-row{display:flex; gap:12px; margin:0 auto 16px; justify-content:center; max-width:360px;}
-    .pin-input-wrap{position:relative; flex:1;}
-    .pin-input{
-      width:100%;
-      padding:16px 54px 16px 16px;
-      border:2px solid #cfe3e6; border-radius:14px; 
-      font-size:24px; letter-spacing:3px; text-align:center;
-      outline:none; background:#ffffff; color:#0b3b4c;
-      transition:border-color .2s, box-shadow .2s, transform .1s;
-    }
-    .pin-input:focus{ border-color:var(--accent); box-shadow:0 0 0 6px rgba(13,108,119,.12); }
-    .eye-btn{
-      position:absolute; right:10px; top:50%; transform:translateY(-50%);
-      border:0; background:transparent; cursor:pointer; padding:6px 8px; border-radius:8px;
-      color:#0b3b4c; opacity:.8;
-    }
-    .eye-btn:hover{ opacity:1; }
-    .lock-actions{display:flex; gap:10px; justify-content:center; margin-top:4px;}
-    .lock-actions .primary{padding:12px 18px; font-size:16px; border-radius:10px;}
-
-    .lock-error{color:#d23b3b; font-size:14px; min-height:20px; margin-top:10px;}
-    @keyframes shake {10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-6px)}40%,60%{transform:translateX(6px)}}
-    .pin-error .pin-input { animation: shake .35s both; border-color:#d23b3b; }
-
-    /* Dark mode (låset) */
-    #budgetApp.dark .lock-card{ background:rgba(26,41,51,.88); border-color:#244248; color:#f2f7f8; }
-    #budgetApp.dark .pin-input{ background:#1f3338; color:#f2f7f8; border-color:#244248; }
-    #budgetApp.dark .pin-input:focus{ border-color:#7ec9d3; box-shadow:0 0 0 6px rgba(126,201,211,.15); }
-    #budgetApp.dark .eye-btn{ color:#dbe7ea; }
-    #budgetApp.dark .brand .brand-text{
-      background:linear-gradient(135deg,#e6f7ff,#7ec9d3);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-    }
-
-    /* ===== MOBIL ===== */
-    @media (max-width: 600px) {
-      #budgetApp .wrap { padding: 14px; }
-      #budgetApp table { font-size: 13px; min-width: 100%; }
-      #budgetApp th, #budgetApp td { padding: 6px; }
-      #budgetApp .controls { flex-direction: column; gap: 6px; align-items: stretch; }
-      #budgetApp .controls button { width: 100%; }
-      #budgetApp .salary-box { flex-direction: column; align-items: stretch; }
-      #budgetApp .salary-box input { width: 100%; }
-      #budgetApp .sum-box { flex-direction: column; gap: 8px; width: 100%; }
-      #budgetApp .card { min-width: unset; width: 100%; }
-      #budgetApp .live-link { flex-direction: column; align-items: stretch; }
-      #cloudControls { flex-direction: column; align-items: stretch; }
-      .pin-row{ max-width: none; }
-      .pin-input{ font-size:22px; }
-      #budgetApp .site-header{ left:12px; top:10px; }
-    }
+    .modal textarea{min-height:72px}
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .modal label{font-size:13px;color:#586e75;display:block;margin:4px 0}
+    .modal .row{display:flex;align-items:center;gap:8px;margin-top:4px}
+    @media (max-width:600px){ .wrap{padding:14px} .sum-grid{grid-template-columns:1fr} table{min-width:980px} }
   </style>
-
-  <!-- Liten logga/brand uppe till vänster -->
-  <div class="site-header" aria-hidden="true">
-    <div class="logo-badge" title="Budgetmall">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9Zm0 3.5c-.83 0-1.5.67-1.5 1.5v1H9a1 1 0 1 0 0 2h1.5v4H9a1 1 0 1 0 0 2h1.5v1a1.5 1.5 0 0 0 3 0v-1H15a1 1 0 1 0 0-2h-1.5v-4H15a1 1 0 1 0 0-2h-1.5v-1c0-.83-.67-1.5-1.5-1.5Z"/></svg>
-    </div>
-    <div class="brand-name">Budgetmall</div>
-  </div>
-
+</head>
+<body>
   <div class="wrap" aria-live="polite">
     <div class="controls">
       <button class="primary" id="addRowBtn">+ Lägg till rad</button>
       <button id="shareBtn">Dela länk</button>
-      <button id="copyBtn">Kopiera</button>
       <button id="shareImageBtn">Dela bild</button>
-      <button id="resetBtn" class="danger" title="Nollställ allt till 0">Nollställ</button>
-      <button id="darkModeBtn" title="Växla tema">Mörkt läge</button>
-      <label class="small" style="display:flex;gap:6px;align-items:center">
-        <input type="checkbox" id="autoThemeChk"> Följ system
-      </label>
-      <button id="lockBtn" title="Lås nu">Lås</button>
+      <button id="copyBtn">Kopiera</button>
+      <button id="lockBtn">Lås</button>
+      <button id="resetBtn" class="danger">Nollställ</button>
+      <button id="clearMemBtn">Nollställ minne</button>
     </div>
 
-    <!-- Fast delningslänk -->
-    <div class="live-link" id="liveLinkWrap">
-      <span class="small">Delningslänk (alltid samma):</span>
-      <input id="liveLink" type="text" readonly value="" />
-      <button id="copyLiveLinkBtn" title="Kopiera delningslänk">Kopiera länk</button>
-      <div class="live-note" id="liveLinkNote">Detta är er permanenta länk. Dela samma länk mellan enheter.</div>
+    <!-- Snabbknappar -->
+    <div class="chips" id="chips">
+      <button id="addChipBtn" title="Lägg till snabbknapp">+ Lägg till snabbknapp</button>
     </div>
 
-    <!-- Moln -->
-    <div id="cloudControls">
-      <button id="cloudSaveBtn" title="Spara till molnet">Spara (moln)</button>
-      <input id="cloudIdInput" type="text" placeholder="Nyckel (t.ex. budgetdb)" />
-      <button id="cloudLoadBtn" title="Öppna från molnet">Öppna (nyckel)</button>
-      <div id="cloudInfo"></div>
+    <!-- Delningslänk -->
+    <div class="live-link">
+      <span class="small">Delningslänk:</span>
+      <input id="liveLink" type="text" readonly />
+      <button id="copyLiveLinkBtn">Kopiera länk</button>
+      <span class="small" id="cloudInfo"></span>
     </div>
 
-    <!-- Månadslön -->
+    <!-- Lön -->
     <div class="card salary-box">
       <div>
         <div class="small">Månadslön (netto)</div>
         <input id="salaryInput" type="number" step="1" min="0" placeholder="t.ex. 36 000" />
       </div>
-      <div class="small">Används i saldot: <strong>(lön + övriga inkomster) − utgifter</strong></div>
+      <div class="small">Saldot = <strong>(lön + övriga inkomster) − utgifter</strong></div>
     </div>
 
     <!-- Tabell -->
@@ -399,780 +162,544 @@
       <table id="budgetTable" aria-label="Budgettabell">
         <thead>
           <tr>
-            <th style="width:34px">↕︎</th>
             <th style="width:260px">Kategori</th>
             <th style="width:140px">Belopp</th>
-            <th style="width:120px">Typ</th>
-            <th style="width:150px">Betalsätt</th>
-            <th>Anteckningar</th>
-            <th style="width:140px">Åtgärd</th>
+            <th style="width:140px">Typ</th>
+            <th style="width:170px">Betalsätt</th>
+            <th class="col-note">Anteckningar</th>
+            <th style="width:220px">Åtgärd</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="7" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td></tr>
+          <tr><td colspan="6" style="padding:18px;color:#6b8a90;text-align:center"><em>Inga rader ännu — klicka <strong>+ Lägg till rad</strong> eller använd en snabbknapp.</em></td></tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Förslag till Anteckningar -->
-    <datalist id="noteCategories">
-      <option value="Livsmedel"></option>
-      <option value="Drivmedel"></option>
-      <option value="Hyra"></option>
-      <option value="Gästgivarevägen"></option>
-      <option value="Studievägen"></option>
-      <option value="DNB Finans"></option>
-      <option value="Abonnemang"></option>
-      <option value="Hus"></option>
-      <option value="Folksam"></option>
-      <option value="Försäkring"></option>
-      <option value="Sparande"></option>
-      <option value="Sjukhus"></option>
-      <option value="Räkningar"></option>
-      <option value="Lån"></option>
-      <option value="Telia tv sport"></option>
-      <option value="Telia"></option>
-      <option value="Fritid"></option>
-      <option value="Swedbank"></option>
-      <option value="Bank"></option>
-      <option value="Klarna"></option>
-      <option value="Övrigt"></option>
-    </datalist>
+    <!-- Kategori-minne -->
+    <datalist id="categoryMemory"></datalist>
 
-    <!-- Summor -->
-    <div class="sum-box">
-      <div class="card salary">
+    <!-- Sumboxar -->
+    <div class="sum-grid">
+      <div class="card c-salary">
         <div class="small">Månadslön</div>
         <div id="salaryDisplay" class="big">0 kr</div>
       </div>
-
-      <div class="card salaryLeft">
+      <div class="card c-left">
         <div class="small">Kvar av lönen (utan övriga inkomster)</div>
         <div id="salaryLeft" class="big">0 kr</div>
       </div>
-
-      <div class="card income">
+      <div class="card c-income">
         <div class="small">Totala inkomster (övriga)</div>
         <div id="totalIncome" class="big good">0 kr</div>
       </div>
-
-      <div class="card expense">
+      <div class="card c-expense">
         <div class="small">Totala utgifter</div>
         <div id="totalExpense" class="big bad">0 kr</div>
       </div>
-
-      <div class="card balance">
+      <div class="card c-balance">
         <div class="small">Saldo (inkl. lön + övriga inkomster)</div>
         <div id="balance" class="big">0 kr</div>
       </div>
-
-      <div class="card buffer">
+      <div class="card c-buffer">
         <div class="small">Buffert (möjlig att spara)</div>
         <div id="buffer" class="big">0 kr</div>
       </div>
     </div>
+  </div>
 
-    <!-- Hjälp & förklaringar -->
-    <details class="helpbox">
-      <summary>
-        Hjälp & förklaringar
-        <span class="chev">▾</span>
-      </summary>
-      <div class="helpbox-content">
-        <p><strong>Så använder ni:</strong> Börja med att fylla i er månadslön, lägg sedan till rader för inkomster och utgifter. Ni kan flytta rader med ≡ eller ↑/↓.</p>
-        <ul>
-          <li><strong>Månadslön:</strong> Den totala lönen ni får in under månaden.</li>
-          <li><strong>Kvar av lönen (utan övriga inkomster):</strong> Hur mycket av lönen som återstår när utgifterna dragits.</li>
-          <li><strong>Totala inkomster (övriga):</strong> Alla inkomster utöver lönen, t.ex. barnbidrag eller extrajobb.</li>
-          <li><strong>Totala utgifter:</strong> Summan av alla kostnader ni lagt in.</li>
-          <li><strong>Saldo:</strong> Lön + övriga inkomster − utgifter.</li>
-          <li><strong>Buffert:</strong> Hur mycket ni kan spara.</li>
-        </ul>
+  <!-- Lås -->
+  <div class="lock" id="lock">
+    <div class="lock-card">
+      <h3 style="margin:0 0 6px">Skyddad budget</h3>
+      <div class="small" style="margin-bottom:10px">Skriv PIN för att öppna (session: 60 min)</div>
+      <div class="pinbox">
+        <input id="pin1" inputmode="numeric" maxlength="1" />
+        <input id="pin2" inputmode="numeric" maxlength="1" />
+        <input id="pin3" inputmode="numeric" maxlength="1" />
+        <input id="pin4" inputmode="numeric" maxlength="1" />
       </div>
-    </details>
+      <div class="kbd">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button id="pinClear">C</button><button data-k="0">0</button><button id="pinOk">OK</button>
+      </div>
+      <div class="hint">Du blir automatiskt utloggad efter inaktivitet.</div>
+    </div>
+  </div>
 
-    <div class="hint">
-      Tips: Börja med lönen, lägg sen till rader. Flytta rader med ≡ eller ↑/↓.
+  <!-- Modal: skapa snabbknapp -->
+  <div class="modal" id="chipModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="chipTitle">
+      <h3 id="chipTitle">Ny snabbknapp</h3>
+      <div class="grid">
+        <div class="full">
+          <label>Kategori (t.ex. “Hyra” eller “Eon”)</label>
+          <input id="mLabel" type="text" placeholder="Kategori" />
+        </div>
+        <div>
+          <label>Belopp (kr)</label>
+          <input id="mAmount" type="number" inputmode="decimal" placeholder="0" />
+        </div>
+        <div>
+          <label>Typ</label>
+          <select id="mType">
+            <option>Utgift</option>
+            <option>Inkomst</option>
+          </select>
+        </div>
+        <div>
+          <label>Betalsätt</label>
+          <select id="mPay">
+            <option value="">-</option>
+            <option>Autogiro</option>
+            <option>E-faktura</option>
+            <option>Pappersfaktura</option>
+            <option>Annat</option>
+          </select>
+        </div>
+        <div class="full">
+          <div class="row">
+            <label style="margin:0">Anteckningar</label>
+            <label style="margin-left:auto"><input id="mMirror" type="checkbox" /> Använd betalsätt som anteckning</label>
+          </div>
+          <textarea id="mNote" placeholder="Valfritt: t.ex. kundnummer, månad, etc."></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="mCancel">Avbryt</button>
+        <button class="primary" id="mSave">Spara snabbknapp</button>
+      </div>
     </div>
   </div>
 
   <script>
-    (function(){
-      const root = document.getElementById('budgetApp');
+  (function(){
+    /* ====== KONFIG ====== */
+    const CLOUD = {
+      endpoint: 'https://script.google.com/macros/s/AKfycbxG3zENX_dIBGbn1zzNWJo9UnZikx-TofN7VjqaYmkQv0ghaPXJ_xB5jhd_3WQOsQ_R/exec',
+      secret: ''
+    };
 
-      /* ===== LÅS-KONFIG ===== */
-      const LOCK = {
-        enabled: true,
-        pin: '8987',
-        timeoutMs: 60 * 60 * 1000
+    /* ====== HJÄLPARE ====== */
+    function getKey(){
+      const u = new URL(location.href);
+      let k = (u.searchParams.get('key')||'').trim();
+      if(!k){
+        k = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2,10));
+        u.searchParams.set('key', k);
+        history.replaceState(null,'',u);
+      }
+      return k;
+    }
+    function cloudEnabled(){ return !!CLOUD.endpoint && !!getKey(); }
+    function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
+    function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    const fmt = new Intl.NumberFormat('sv-SE',{style:'currency',currency:'SEK',maximumFractionDigits:0});
+
+    /* ====== UI REFS ====== */
+    const tbody = document.getElementById('tbody');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const shareImageBtn = document.getElementById('shareImageBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const lockBtn = document.getElementById('lockBtn');
+
+    const chipsWrap = document.getElementById('chips');
+    const addChipBtn = document.getElementById('addChipBtn');
+
+    const totalIncomeEl   = document.getElementById('totalIncome');
+    const totalExpenseEl  = document.getElementById('totalExpense');
+    const balanceEl       = document.getElementById('balance');
+    const salaryInput     = document.getElementById('salaryInput');
+    const salaryLeftEl    = document.getElementById('salaryLeft');
+    const salaryDisplayEl = document.getElementById('salaryDisplay');
+    const bufferEl        = document.getElementById('buffer');
+
+    const liveLinkInput = document.getElementById('liveLink');
+    const copyLiveLinkBtn = document.getElementById('copyLiveLinkBtn');
+    const cloudInfo = document.getElementById('cloudInfo');
+
+    const clearMemBtn = document.getElementById('clearMemBtn');
+    const categoryMemoryList = document.getElementById('categoryMemory');
+
+    /* Modal */
+    const chipModal = document.getElementById('chipModal');
+    const mLabel = document.getElementById('mLabel');
+    const mAmount = document.getElementById('mAmount');
+    const mType = document.getElementById('mType');
+    const mPay = document.getElementById('mPay');
+    const mNote = document.getElementById('mNote');
+    const mMirror = document.getElementById('mMirror');
+    const mCancel = document.getElementById('mCancel');
+    const mSave = document.getElementById('mSave');
+
+    /* ====== DATA ====== */
+    let rows = [];
+    let salary = 0;
+
+    /* ====== LÅS ====== */
+    const LOCK = { pin:'8987', timeoutMs: 60*60*1000 };
+    const lockEl = document.getElementById('lock');
+    const pinInputs = [ 'pin1','pin2','pin3','pin4' ].map(id=>document.getElementById(id));
+    const pinOk = document.getElementById('pinOk');
+    const pinClear = document.getElementById('pinClear');
+    const lockTsKey = ()=>'budget_lock_ts_' + getKey();
+    function now(){ return Date.now(); }
+    function setUnlockTs(){ localStorage.setItem(lockTsKey(), String(now())); }
+    function getUnlockTs(){ const v=localStorage.getItem(lockTsKey()); return v?Number(v):0; }
+    function needLock(){ const ts = getUnlockTs(); return !ts || (now()-ts) > LOCK.timeoutMs; }
+    function openLock(){ lockEl.classList.add('open'); pinInputs[0].focus(); }
+    function closeLock(){ lockEl.classList.remove('open'); setUnlockTs(); }
+    function tryUnlock(){
+      const val = pinInputs.map(i=>i.value).join('');
+      if(val === LOCK.pin){ closeLock(); pinInputs.forEach(i=>i.value=''); }
+      else { pinInputs.forEach(i=>i.value=''); pinInputs[0].focus(); alert('Fel PIN'); }
+    }
+    pinOk.onclick = tryUnlock;
+    pinClear.onclick = ()=>{ pinInputs.forEach(i=>i.value=''); pinInputs[0].focus(); };
+    lockBtn.onclick = openLock;
+    lockEl.querySelectorAll('[data-k]').forEach(b=> b.addEventListener('click', (e)=>{
+      const k = e.currentTarget.getAttribute('data-k');
+      for(const inp of pinInputs){ if(inp.value===''){ inp.value=k; break; } }
+    }));
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState==='hidden') setUnlockTs();
+    });
+    if(needLock()) openLock();
+
+    /* ====== DELNING ====== */
+    function updateShareLink(){ liveLinkInput.value = location.href; }
+    copyLiveLinkBtn.onclick = ()=>{
+      const t = liveLinkInput.value;
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+        .then(()=>alert('Länk kopierad.'))
+        .catch(()=>prompt('Kopiera manuellt:', t));
+    };
+    shareBtn.onclick = ()=> copyLiveLinkBtn.click();
+    copyBtn.onclick = ()=> copyLiveLinkBtn.click();
+    updateShareLink();
+
+    /* ====== KATEGORI-MINNE ====== */
+    const MEM_KEY = 'budget_cat_memory_v1';
+    function loadCategoryMemory(){
+      let arr = []; try{ arr = JSON.parse(localStorage.getItem(MEM_KEY)||'[]'); }catch(_){}
+      if(!Array.isArray(arr)) arr = [];
+      categoryMemoryList.innerHTML = arr.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
+      return arr;
+    }
+    function saveCategoryToMemory(s){
+      const label = String(s||'').trim();
+      if(!label) return;
+      const arr = loadCategoryMemory();
+      if(!arr.includes(label)){
+        arr.push(label);
+        localStorage.setItem(MEM_KEY, JSON.stringify(arr));
+        loadCategoryMemory();
+      }
+    }
+    function clearCategoryMemory(){ localStorage.removeItem(MEM_KEY); loadCategoryMemory(); }
+    clearMemBtn.onclick = ()=>{ if(confirm('Rensa endast kategori-minnet? (påverkar inte dina rader)')) clearCategoryMemory(); };
+
+    /* ====== SNABBKNAPPAR ====== */
+    function openChipModal(){
+      mLabel.value = ''; mAmount.value=''; mType.value='Utgift'; mPay.value=''; mNote.value='';
+      mMirror.checked = false;
+      chipModal.classList.add('open');
+      mLabel.focus();
+    }
+    function closeChipModal(){ chipModal.classList.remove('open'); }
+    addChipBtn.addEventListener('click', openChipModal);
+    mCancel.addEventListener('click', closeChipModal);
+    chipModal.addEventListener('click', (e)=>{ if(e.target===chipModal) closeChipModal(); });
+    mMirror.addEventListener('change', ()=>{
+      if(mMirror.checked) mNote.value = mPay.value || '';
+    });
+    mPay.addEventListener('change', ()=>{
+      if(mMirror.checked) mNote.value = mPay.value || '';
+    });
+    mSave.addEventListener('click', ()=>{
+      const label = mLabel.value.trim();
+      if(!label){ alert('Skriv en kategori.'); mLabel.focus(); return; }
+      const obj = {
+        label,
+        amount: Number(mAmount.value)||0,
+        type: mType.value==='Inkomst' ? 'Inkomst' : 'Utgift',
+        pay: mPay.value || '',
+        note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
+      const list = JSON.parse(localStorage.getItem('budget_quick_items')||'[]');
+      list.push(obj);
+      localStorage.setItem('budget_quick_items', JSON.stringify(list));
+      saveCategoryToMemory(label);
+      loadChips();
+      closeChipModal();
+    });
 
-      // ===== KONFIG: Apps Script =====
-      const CLOUD = {
-        endpoint: 'https://script.google.com/macros/s/AKfycbxG3zENX_dIBGbn1zzNWJo9UnZikx-TofN7VjqaYmkQv0ghaPXJ_xB5jhd_3WQOsQ_R/exec',
-        secret: ''
-      };
-
-      // UI refs
-      const tbody           = root.querySelector('#tbody');
-      const addRowBtn       = root.querySelector('#addRowBtn');
-      const shareBtn        = root.querySelector('#shareBtn');
-      const copyBtn         = root.querySelector('#copyBtn');
-      const shareImageBtn   = root.querySelector('#shareImageBtn');
-      const resetBtn        = root.querySelector('#resetBtn');
-      const darkModeBtn     = root.querySelector('#darkModeBtn');
-      const lockBtn         = root.querySelector('#lockBtn');
-      const autoThemeChk    = root.querySelector('#autoThemeChk');
-
-      const liveLinkInput   = root.querySelector('#liveLink');
-      const copyLiveLinkBtn = root.querySelector('#copyLiveLinkBtn');
-      const liveLinkNote    = root.querySelector('#liveLinkNote');
-
-      // Moln
-      const cloudSaveBtn  = root.querySelector('#cloudSaveBtn');
-      const cloudLoadBtn  = root.querySelector('#cloudLoadBtn');
-      const cloudIdInput  = root.querySelector('#cloudIdInput');
-      const cloudInfo     = root.querySelector('#cloudInfo');
-
-      // Summor
-      const totalIncomeEl   = root.querySelector('#totalIncome');
-      const totalExpenseEl  = root.querySelector('#totalExpense');
-      const balanceEl       = root.querySelector('#balance');
-      const salaryInput     = root.querySelector('#salaryInput');
-      const salaryLeftEl    = root.querySelector('#salaryLeft');
-      const salaryDisplayEl = root.querySelector('#salaryDisplay');
-      const bufferEl        = root.querySelector('#buffer');
-
-      const STORAGE_KEY = 'budget_app_v1';
-      const STORAGE_SALARY_KEY = 'budget_app_salary_v1';
-
-      const fmt = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 });
-
-      let rows = [];
-      let salary = 0;
-
-      // ---- KEY-länk ----
-      function getKey(){
-        try{
-          const p = new URLSearchParams(location.search);
-          const k = (p.get('key')||'').trim().toLowerCase();
-          return k || 'budgetdb';
-        }catch(_){ return 'budgetdb'; }
-      }
-      function shareLinkForKey(){
-        const base = location.origin + location.pathname;
-        return `${base}?key=${encodeURIComponent(getKey())}`;
-      }
-      function updateShareInAddressBar(){
-        const link = shareLinkForKey();
-        try{ history.replaceState(null, '', link); }catch(_){}
-        liveLinkInput.value = link;
-        liveLinkNote.textContent = 'Detta är er permanenta länk. Dela samma länk mellan enheter.';
-      }
-
-      // -------- LÅS: state & utils --------
-      const LOCK_TS_KEY = ()=>`budget_lock_ts_${getKey()}`;
-      function now(){ return Date.now(); }
-      function setUnlockTs(t){ localStorage.setItem(LOCK_TS_KEY(), String(t)); }
-      function getUnlockTs(){ const v = localStorage.getItem(LOCK_TS_KEY()); return v?Number(v):0; }
-      function clearUnlockTs(){ localStorage.removeItem(LOCK_TS_KEY()); }
-
-      function needLock(){
-        if(!LOCK.enabled) return false;
-        const ts = getUnlockTs();
-        if(!ts) return true;
-        return (now() - ts) > LOCK.timeoutMs;
-      }
-
-      function setLockedUI(isLocked){
-        root.classList.toggle('locked', !!isLocked);
-      }
-
-      let lockOverlayEl = null;
-      function showLockOverlay(){
-        if(lockOverlayEl) return;
-        setLockedUI(true);
-        lockOverlayEl = document.createElement('div');
-        lockOverlayEl.className = 'lock-overlay';
-        lockOverlayEl.innerHTML = `
-          <div class="lock-card" role="dialog" aria-modal="true" aria-label="Lås upp">
-            <div class="brand">
-              <svg class="brand-lock" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M7 10V7a5 5 0 1 1 10 0v3" stroke="#0b3b4c" stroke-width="1.7" stroke-linecap="round"/>
-                <rect x="4" y="10" width="16" height="10" rx="2.7" stroke="#0b3b4c" stroke-width="1.7"/>
-                <circle cx="12" cy="15" r="1.6" fill="#0b3b4c"/>
-              </svg>
-              <div class="brand-text">Budgetmall</div>
-            </div>
-            <h3>Skyddad budget</h3>
-            <p>Skriv din PIN-kod för att låsa upp.</p>
-            <div class="pin-row">
-              <div class="pin-input-wrap" id="pinWrap">
-                <input id="pinInput" class="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="••••" aria-label="PIN-kod">
-                <button class="eye-btn" id="togglePin" aria-label="Visa/dölj PIN">👁️</button>
-              </div>
-            </div>
-            <div class="lock-actions">
-              <button id="unlockBtn" class="primary">Lås upp</button>
-            </div>
-            <div id="lockError" class="lock-error" aria-live="polite"></div>
-          </div>`;
-        root.appendChild(lockOverlayEl);
-
-        const pinInput  = lockOverlayEl.querySelector('#pinInput');
-        const unlockBtn = lockOverlayEl.querySelector('#unlockBtn');
-        const lockError = lockOverlayEl.querySelector('#lockError');
-        const pinWrap   = lockOverlayEl.querySelector('#pinWrap');
-        const togglePin = lockOverlayEl.querySelector('#togglePin');
-
-        function tryUnlock(){
-          const val = (pinInput.value||'').trim();
-          if(val === LOCK.pin){
-            setUnlockTs(now());
-            hideLockOverlay();
-            afterUnlock();
-          }else{
-            lockError.textContent = 'Fel PIN. Försök igen.';
-            pinWrap.classList.remove('pin-error'); 
-            void pinWrap.offsetWidth;              
-            pinWrap.classList.add('pin-error');    
-            pinInput.focus(); pinInput.select();
-          }
-        }
-        function toggleVisibility(){
-          pinInput.type = (pinInput.type === 'password') ? 'text' : 'password';
-          pinInput.focus();
-        }
-
-        togglePin.addEventListener('click', toggleVisibility);
-        unlockBtn.addEventListener('click', tryUnlock);
-        pinInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') tryUnlock(); });
-        setTimeout(()=> pinInput.focus(), 0);
-      }
-      function hideLockOverlay(){
-        if(!lockOverlayEl) return;
-        lockOverlayEl.remove();
-        lockOverlayEl = null;
-        setLockedUI(false);
-        markActivity();
-      }
-      function forceLock(){
-        clearUnlockTs();
-        showLockOverlay(); 
-      }
-
-      // Auto-lock timer
-      let idleTimer = null;
-      function resetIdleTimer(){
-        if(idleTimer) clearTimeout(idleTimer);
-        if(!LOCK.enabled) return;
-        idleTimer = setTimeout(()=> { forceLock(); }, LOCK.timeoutMs);
-      }
-      function markActivity(){
-        if(root.classList.contains('locked')) return;
-        if(!LOCK.enabled) return;
-        setUnlockTs(now());
-        resetIdleTimer();
-      }
-      function setupAutoLock(){
-        if(!LOCK.enabled) return;
-        ['click','keydown','mousemove','wheel','touchstart','scroll'].forEach(evt=>{
-          window.addEventListener(evt, markActivity, {passive:true});
+    function loadChips(){
+      const list = JSON.parse(localStorage.getItem('budget_quick_items')||'[]');
+      chipsWrap.querySelectorAll('.chip').forEach(e=>e.remove());
+      list.forEach((c,idx)=>{
+        const el = document.createElement('div');
+        el.className = 'chip';
+        const tags = [c.type||'Utgift', c.pay||'−'].filter(Boolean).join(' · ');
+        el.innerHTML = `<span>${escapeHtml(c.label)} <small style="opacity:.7">(${escapeHtml(tags)})</small></span><span class="x" title="Ta bort" data-i="${idx}">×</span>`;
+        el.addEventListener('click',(ev)=>{
+          if(ev.target.classList.contains('x')) return;
+          rows.push({ category:c.label||'', amount:Number(c.amount||0), type:(c.type||'Utgift'), pay:(c.pay||''), note:(c.note||'') });
+          render(); updateTotals(); saveLocal(); cloudSaveDebounced();
         });
-        resetIdleTimer();
-      }
-
-      // ===== Tema (ljus/mörk + auto) =====
-      const THEME_STORE = 'budget_app_dark';        // '1' för mörk, '0' för ljus
-      const THEME_AUTO  = 'budget_app_theme_auto';  // '1' = följ system
-      let mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
-      let mediaHandler = null;
-
-      function applyTheme(isDark){
-        root.classList.toggle('dark', !!isDark);
-        localStorage.setItem(THEME_STORE, isDark ? '1' : '0');
-        if(darkModeBtn) darkModeBtn.textContent = isDark ? 'Ljust läge' : 'Mörkt läge';
-      }
-      function applySystemThemeOnce(){
-        applyTheme(mediaDark.matches);
-      }
-      function enableAutoTheme(){
-        localStorage.setItem(THEME_AUTO, '1');
-        applySystemThemeOnce();
-        if(mediaHandler) mediaDark.removeEventListener('change', mediaHandler);
-        mediaHandler = (e)=> applyTheme(e.matches);
-        mediaDark.addEventListener('change', mediaHandler);
-        if(darkModeBtn){ darkModeBtn.disabled = true; darkModeBtn.title = 'Följ systemläge är på'; }
-      }
-      function disableAutoTheme(){
-        localStorage.removeItem(THEME_AUTO);
-        if(mediaHandler) mediaDark.removeEventListener('change', mediaHandler);
-        mediaHandler = null;
-        if(darkModeBtn){ darkModeBtn.disabled = false; darkModeBtn.title = 'Växla tema'; }
-      }
-
-      // -------- INIT --------
-      function init(){
-        cloudIdInput.value = getKey();
-
-        // Lön från localStorage
-        const rawSalary = localStorage.getItem(STORAGE_SALARY_KEY);
-        if(rawSalary) salary = Number(rawSalary) || 0;
-        salaryInput.value = salary || '';
-        salaryInput.addEventListener('input', ()=>{
-          salary = Number(salaryInput.value)||0;
-          localStorage.setItem(STORAGE_SALARY_KEY, String(salary));
-          updateTotals();
+        el.querySelector('.x').addEventListener('click',(ev)=>{
+          ev.stopPropagation();
+          const arr = JSON.parse(localStorage.getItem('budget_quick_items')||'[]');
+          arr.splice(idx,1); localStorage.setItem('budget_quick_items', JSON.stringify(arr));
+          loadChips();
         });
+        chipsWrap.insertBefore(el, addChipBtn);
+      });
+    }
 
-        setupAutoLock();
+    /* ====== MOLN (AUTOSAVE) ====== */
+    let isLoadingFromCloud = false;
+    function payload(){ return { rows, salary: Number(salary)||0, updatedAt: Date.now() }; }
+    async function cloudSave(){
+      if(!cloudEnabled() || isLoadingFromCloud) return;
+      try{
+        const form = new URLSearchParams();
+        form.set('op','save'); form.set('key', getKey()); form.set('secret', CLOUD.secret||'');
+        form.set('data', JSON.stringify(payload()));
+        const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
+        await res.text();
+        cloudInfo.textContent = 'Autosparat ✔︎';
+      }catch(err){ cloudInfo.textContent = 'Kunde inte autospara'; }
+    }
+    const cloudSaveDebounced = debounce(cloudSave, 1000);
 
-        // Lås direkt vid laddning om nödvändigt
-        if(needLock()){
-          showLockOverlay();
-        }else{
-          afterUnlock();
-        }
-
-        // ===== Tema-init =====
-        const wasAuto = localStorage.getItem(THEME_AUTO) === '1';
-        if (autoThemeChk) autoThemeChk.checked = wasAuto;
-
-        if (wasAuto) {
-          enableAutoTheme();
-        } else {
-          // Ljus läge som standard första gången
-          const stored = localStorage.getItem(THEME_STORE);
-          if (stored === null) {
-            applyTheme(false); // ljus
-          } else {
-            applyTheme(stored === '1'); // återställ tidigare val
-          }
-          disableAutoTheme();
-        }
-
-        // Lyssna på auto-bocken
-        if (autoThemeChk) {
-          autoThemeChk.addEventListener('change', () => {
-            if (autoThemeChk.checked) enableAutoTheme();
-            else {
-              disableAutoTheme();
-              // behåll aktuellt läge, men gör knappen aktiv igen
-            }
-          });
-        }
-
-        // Knapp för mörkt/ljust (endast aktiv när auto är av)
-        darkModeBtn.onclick = ()=>{
-          if (autoThemeChk && autoThemeChk.checked) return; // skydd
-          const isDark = !root.classList.contains('dark');
-          applyTheme(isDark);
-        };
-
-        updateShareInAddressBar();
-      }
-
-      function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); }
-
-      // -------- Render --------
-      function render(){
-        tbody.innerHTML = '';
-        if(rows.length === 0){
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td colspan="7" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till rad</strong> för att börja.</div></td>`;
-          tbody.appendChild(tr);
-          updateTotals(); save();
-          return;
-        }
-        rows.forEach((r, i)=>{
-          const tr = document.createElement('tr');
-          tr.dataset.index = i;
-          tr.innerHTML = `
-            <td><span class="drag-handle" draggable="true" title="Dra för att flytta">≡</span></td>
-            <td><input type="text"   data-i="${i}" data-col="category" value="${escapeHtml(r.category)}" placeholder="Kategori"></td>
-            <td class="right"><input type="number" data-i="${i}" data-col="amount"   value="${r.amount}" step="1" placeholder="0" inputmode="decimal"></td>
-            <td>
-              <select data-i="${i}" data-col="type">
-                <option ${r.type==='Utgift'?'selected':''}>Utgift</option>
-                <option ${r.type==='Inkomst'?'selected':''}>Inkomst</option>
-              </select>
-            </td>
-            <td>
-              <select data-i="${i}" data-col="pay">
-                <option value="" ${(!r.pay || r.pay==='')?'selected':''}>-</option>
-                <option value="Autogiro" ${r.pay==='Autogiro'?'selected':''}>Autogiro</option>
-                <option value="E-faktura" ${r.pay==='E-faktura'?'selected':''}>E-faktura</option>
-                <option value="Pappersfaktura" ${r.pay==='Pappersfaktura'?'selected':''}>Pappersfaktura</option>
-                <option value="Annat" ${r.pay==='Annat'?'selected':''}>Annat</option>
-              </select>
-            </td>
-            <td><input type="text" data-i="${i}" data-col="note" value="${escapeHtml(r.note||'')}" list="noteCategories" placeholder="Anteckning eller välj kategori"></td>
-            <td class="row-actions">
-              <button data-action="up"   data-i="${i}" title="Flytta upp">↑</button>
-              <button data-action="down" data-i="${i}" title="Flytta ner">↓</button>
-              <button data-action="neg"  data-i="${i}" title="Växla positiv/negativ">±</button>
-              <button data-action="del"  data-i="${i}" title="Ta bort" style="background:#ffdede">Ta bort</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-        attachEvents();
-        attachDragAndDrop();
-        updateTotals();
-        save();
-      }
-
-      // -------- Händelser --------
-      function attachEvents(){
-        tbody.querySelectorAll('input, select').forEach(el=>{
-          el.onchange = ()=>{
-            const i = +el.dataset.i;
-            const col = el.dataset.col;
-            if(col==='amount') rows[i][col] = Number(el.value) || 0; else rows[i][col] = el.value;
-            render();
-          };
-          if(el.dataset.col === 'amount'){
-            el.onfocus = ()=>{
-              if(el.value === '0' || el.value === '') el.value = '';
-            };
-            el.onblur = ()=>{
-              if(el.value === '' || isNaN(Number(el.value))){ 
-                el.value = '0';
-                const i = +el.dataset.i;
-                rows[i].amount = 0;
-                updateTotals(); save();
-              }
-            };
-          }
-        });
-
-        tbody.querySelectorAll('button[data-action]').forEach(btn=>{
-          btn.onclick = ()=>{
-            const i = +btn.dataset.i;
-            const act = btn.dataset.action;
-            if(act==='del'){ rows.splice(i,1); render(); }
-            else if(act==='neg'){ rows[i].amount = -rows[i].amount; render(); }
-            else if(act==='up'){ if(i>0) moveRow(i, i-1); }
-            else if(act==='down'){ if(i<rows.length-1) moveRow(i, i+1); }
-          };
-        });
-
-        // Moln
-        cloudSaveBtn.onclick = ()=> { cloudIdInput.value = getKey(); cloudSave(); };
-        cloudLoadBtn.onclick = ()=>{
-          const key = (cloudIdInput.value||'').trim().toLowerCase();
-          if(!key) return alert('Skriv in en nyckel, t.ex. budgetdb');
-          const base = location.origin + location.pathname;
-          try{ history.replaceState(null,'', `${base}?key=${encodeURIComponent(key)}`); }catch(_){}
-          cloudLoadFromKey(key);
-          updateShareInAddressBar();
-        };
-
-        // Delning
-        shareBtn.onclick = ()=>{
-          const link = shareLinkForKey();
-          (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
-            .then(()=> alert('Fast delningslänk kopierad.'))
-            .catch(()=> prompt('Kopiera länk:', link));
-        };
-        copyBtn.onclick = ()=>{
-          const link = shareLinkForKey();
-          (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
-            .then(()=> alert('Länk kopierad.'))
-            .catch(()=> prompt('Kopiera manuellt:', link));
-        };
-        copyLiveLinkBtn.onclick = ()=>{
-          const text = liveLinkInput.value;
-          (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
-            .then(()=> alert('Länk kopierad.'))
-            .catch(()=> prompt('Kopiera manuellt:', text));
-        };
-      }
-
-      // Lägg till rad
-      addRowBtn.onclick = ()=>{
-        rows.push({category:'', amount:0, type:'Utgift', pay:'', note:''});
-        render();
-        const lastInput = root.querySelector('#tbody tr:last-child td:nth-child(2) input');
-        if(lastInput) lastInput.focus();
-      };
-
-      // -------- Drag & drop --------
-      let draggedIndex = null;
-      function attachDragAndDrop(){
-        tbody.addEventListener('dragstart', (e)=>{
-          if(!e.target.closest('.drag-handle')) return;
-          const tr = e.target.closest('tr');
-          draggedIndex = +tr.dataset.index;
-          tr.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-          try{ e.dataTransfer.setData('text/plain', String(draggedIndex)); }catch(_){}
-        });
-        tbody.addEventListener('dragend', ()=>{
-          draggedIndex = null;
-          tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('dragging','drag-over'));
-        });
-        tbody.addEventListener('dragover', (e)=>{
-          if(draggedIndex==null) return;
-          e.preventDefault();
-          const tr = e.target.closest('tr'); if(!tr) return;
-          tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over'));
-          tr.classList.add('drag-over');
-          try{ e.dataTransfer.dropEffect = 'move'; }catch(_){}
-        });
-        tbody.addEventListener('drop', (e)=>{
-          if(draggedIndex==null) return;
-          e.preventDefault();
-          const tr = e.target.closest('tr');
-          tbody.querySelectorAll('tr').forEach(r=>r.classList.remove('drag-over'));
-          if(!tr) return;
-          const destIndex = +tr.dataset.index;
-          if(destIndex===draggedIndex) return;
-          moveRow(draggedIndex, destIndex);
-          draggedIndex = null;
-        });
-      }
-
-      function moveRow(from, to){
-        if(from<0||to<0||from>=rows.length||to>=rows.length) return;
-        const item = rows.splice(from,1)[0];
-        rows.splice(to,0,item);
-        render();
-      }
-
-      // -------- Summeringar --------
-      function updateTotals(){
-        let sumIncome = 0, sumExpense = 0;
-        rows.forEach(r=>{
-          const amt = Number(r.amount)||0;
-          if(r.type === 'Inkomst') sumIncome += amt; else sumExpense += amt;
-        });
-        totalIncomeEl.textContent  = fmt.format(Math.round(sumIncome));
-        totalExpenseEl.textContent = fmt.format(Math.round(sumExpense));
-        const s = Number(salary)||0;
-        salaryDisplayEl.textContent = fmt.format(Math.round(s));
-        const salaryLeft = Math.round(s - sumExpense);
-        salaryLeftEl.textContent = fmt.format(salaryLeft);
-        const balance = Math.round(s + sumIncome - sumExpense);
-        balanceEl.textContent = fmt.format(balance);
-        bufferEl.textContent = fmt.format(balance);
-        balanceEl.classList.toggle('bad', balance < 0);
-        balanceEl.classList.toggle('good', balance >= 0);
-        salaryLeftEl.classList.toggle('bad', salaryLeft < 0);
-        salaryLeftEl.classList.toggle('good', salaryLeft >= 0);
-        bufferEl.classList.toggle('bad', balance < 0);
-        bufferEl.classList.toggle('good', balance >= 0);
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
-        markActivity();
-      }
-
-      // -------- Helpers --------
-      function escapeHtml(s){
-        return (s||'').toString()
-          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-          .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-      }
-
-      /* ======= DELA SOM BILD ======= */
-      async function ensureHtml2Canvas(){
-        if(window.html2canvas) return;
-        await new Promise((res, rej)=>{
-          const s = document.createElement('script');
-          s.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-          s.onload = res;
-          s.onerror = ()=>rej(new Error('Kunde inte ladda html2canvas'));
-          document.head.appendChild(s);
-        });
-      }
-      function buildImageSourceElement(){
-        const tmp = document.createElement('div');
-        tmp.style.position = 'fixed';
-        tmp.style.left = '-99999px';
-        tmp.style.top = '0';
-        tmp.style.padding = '12px';
-        tmp.style.background = '#ffffff';
-        tmp.style.width = (root.querySelector('.table-wrap')?.offsetWidth || 800) + 'px';
-        const title = document.createElement('div');
-        title.style.font = '600 18px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial';
-        title.style.margin = '0 0 8px';
-        title.textContent = 'Budgetöversikt';
-        tmp.appendChild(title);
-        const tableClone = root.querySelector('.table-wrap')?.cloneNode(true);
-        const sumClone   = root.querySelector('.sum-box')?.cloneNode(true);
-        if(tableClone) tmp.appendChild(tableClone);
-        if(sumClone){ sumClone.style.marginTop = '8px'; tmp.appendChild(sumClone); }
-        document.body.appendChild(tmp);
-        return tmp;
-      }
-      function dataURLFromCanvas(canvas){
-        try{ return canvas.toDataURL('image/png'); }catch(_){ return null; }
-      }
-      function triggerDownloadFromUrlOrBlob(name, src){
-        try{
-          const a = document.createElement('a');
-          a.download = name;
-          if(typeof src === 'string'){ a.href = src; }
-          else { const url = URL.createObjectURL(src); a.href = url; a._revokeUrl = url; }
-          document.body.appendChild(a); a.click(); a.remove();
-          if(a._revokeUrl) URL.revokeObjectURL(a._revokeUrl);
-          return true;
-        }catch(_){ return false; }
-      }
-      function openInNewTab(name, src){
-        try{
-          const url = (typeof src === 'string') ? src : URL.createObjectURL(src);
-          const win = window.open(url, '_blank');
-        if(!win){ alert('Popup blockerad. Tillåt popups eller prova igen.'); }
-          if(typeof src !== 'string'){ setTimeout(()=> URL.revokeObjectURL(url), 5000); }
-          return true;
-        }catch(_){ return false; }
-      }
-      shareImageBtn.onclick = async ()=>{
-        try{
-          await ensureHtml2Canvas();
-          const src = buildImageSourceElement();
-          const canvas = await html2canvas(src, { backgroundColor:'#ffffff', scale: window.devicePixelRatio>1?2:1, useCORS:true });
-          document.body.removeChild(src);
-          const done = async (blobOrDataUrl)=>{
-            if(blobOrDataUrl instanceof Blob){
-              const file = new File([blobOrDataUrl], 'budget.png', { type:'image/png' });
-              if(navigator.canShare && navigator.canShare({ files:[file] })){
-                try{ await navigator.share({ files:[file], title:'Budget', text:'Min budgetöversikt' }); return; }catch(_){}
-              }
-            }
-            if(navigator.clipboard && window.ClipboardItem){
-              try{
-                const item = blobOrDataUrl instanceof Blob
-                  ? new ClipboardItem({ 'image/png': blobOrDataUrl })
-                  : new ClipboardItem({ 'image/png': await (await fetch(blobOrDataUrl)).blob() });
-                await navigator.clipboard.write([item]);
-                alert('Bild kopierad till urklipp.'); return;
-              }catch(_){}
-            }
-            if(blobOrDataUrl instanceof Blob){
-              if(triggerDownloadFromUrlOrBlob('budget.png', blobOrDataUrl)) return;
-              openInNewTab('budget.png', blobOrDataUrl); return;
-            } else {
-              if(triggerDownloadFromUrlOrBlob('budget.png', blobOrDataUrl)) return;
-              openInNewTab('budget.png', blobOrDataUrl); return;
-            }
-          };
-          if(canvas.toBlob){
-            canvas.toBlob(async (blob)=>{ if(blob) await done(blob); else { const url=dataURLFromCanvas(canvas); if(!url) throw new Error('PNG misslyckades'); await done(url);} }, 'image/png');
-          } else {
-            const url = dataURLFromCanvas(canvas); if(!url) throw new Error('PNG misslyckades'); await done(url);
-          }
-        }catch(e){ alert('Kunde inte skapa bild: ' + e.message); }
-      };
-      /* ======= /DELA SOM BILD ======= */
-
-      // ======== MOLN via Google Apps Script (PER KEY) ========
-      function payload(){ return { rows, salary: Number(salary)||0 }; }
-
-      async function cloudSave(){
-        if(!CLOUD.endpoint){
-          alert('Moln är inte konfigurerat.');
-          return;
-        }
-        try{
-          const form = new URLSearchParams();
-          form.set('op', 'save');
-          form.set('key', getKey());
-          form.set('secret', CLOUD.secret || '');
-          form.set('data', JSON.stringify(payload()));
-
-          const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
-          const text = await res.text();
-          let json; 
-          try{ json = JSON.parse(text); }
-          catch(_){ throw new Error('Fel från servern: ' + text.slice(0,200)); }
-          if(!json.ok) throw new Error(json.error||'Sparning misslyckades');
-
-          cloudInfo.textContent = `Sparat för nyckel: ${getKey()}`;
-          updateShareInAddressBar();
-          alert('Sparat i molnet.');
-        }catch(e){
-          alert('Molnfel: ' + e.message);
-        }
-      }
-
-      async function cloudLoadFromKey(key, quiet=false){
-        if(!CLOUD.endpoint){
-          alert('Moln är inte konfigurerat.');
-          return;
-        }
-        try{
-          const url = `${CLOUD.endpoint}?op=load&key=${encodeURIComponent(key)}`;
-          const res = await fetch(url, { method:'GET' });
-          const text = await res.text();
-          let json; 
-          try{ json = JSON.parse(text); }
-          catch(_){ 
-            console.error('Server raw response:', text);
-            throw new Error('Servern svarade inte med JSON. Kolla att du använder exec-URL och rätt behörighet.');
-          }
-
-          if(!json.ok){
-            if(json.error && json.error.toLowerCase() !== 'not found' && !quiet){
-              alert('Molnfel: ' + json.error);
-            }
-            rows = []; render(); updateTotals(); updateShareInAddressBar();
-            cloudInfo.textContent = `Ingen data hittad för nyckel: ${key}`;
-            return;
-          }
-
-          const d = json.data;
-          rows = Array.isArray(d.rows) ? d.rows.map(r=>({
+    async function cloudLoad(){
+      if(!cloudEnabled()) return;
+      isLoadingFromCloud = true;
+      try{
+        const form = new URLSearchParams();
+        form.set('op','load'); form.set('key', getKey()); form.set('secret', CLOUD.secret||'');
+        const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
+        const text = await res.text();
+        let json; try{ json = JSON.parse(text); }catch(_){}
+        const data = json && (json.data || json);
+        if(data && Array.isArray(data.rows)){
+          rows = data.rows.map(r=>({
             category:r.category||'',
             amount:Number(r.amount)||0,
-            type:r.type||'Utgift',
+            type:r.type==='Inkomst'?'Inkomst':'Utgift',
             pay:(typeof r.pay==='string')?r.pay:'',
             note:r.note||''
-          })) : [];
-          salary = Number(d.salary)||0; salaryInput.value = salary || '';
-          localStorage.setItem(STORAGE_SALARY_KEY, String(salary));
-          render(); updateTotals();
-          cloudInfo.textContent = `Öppnat nyckel: ${key}`;
-          updateShareInAddressBar();
-          if(!quiet) alert('Öppnat från molnet.');
-        }catch(e){
-          console.error(e);
-          alert('Molnfel: ' + e.message);
+          }));
+          salary = Number(data.salary)||0;
+          salaryInput.value = salary || '';
         }
+      }catch(err){ console.warn('Moln load fel:', err); }
+      finally{ render(); updateTotals(); isLoadingFromCloud = false; }
+    }
+
+    /* ====== LOCAL SAVE ====== */
+    function saveLocal(){
+      localStorage.setItem('budget_rows_v1', JSON.stringify(rows));
+      localStorage.setItem('budget_salary_v1', String(Number(salary)||0));
+    }
+    function loadLocal(){
+      try{ const r = JSON.parse(localStorage.getItem('budget_rows_v1')||'[]'); if(Array.isArray(r)) rows = r; }catch(_) {}
+      salary = Number(localStorage.getItem('budget_salary_v1')||0) || 0;
+      salaryInput.value = salary || '';
+    }
+
+    /* ====== INIT ====== */
+    function init(){
+      loadCategoryMemory();
+      loadChips();
+      loadLocal();
+      cloudLoad();
+      render(); updateTotals();
+
+      salaryInput.addEventListener('input', ()=>{
+        salary = Number(salaryInput.value)||0;
+        saveLocal(); cloudSaveDebounced(); updateTotals();
+      });
+
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.visibilityState==='hidden'){ saveLocal(); cloudSave(); setUnlockTs(); }
+      });
+    }
+
+    /* ====== RENDER ====== */
+    function autoGrow(el){
+      el.style.height = 'auto';
+      const h = Math.min(160, Math.max(48, el.scrollHeight+2));
+      el.style.height = h + 'px';
+    }
+
+    function render(){
+      tbody.innerHTML = '';
+      if(rows.length === 0){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" style="padding:18px;color:#6b8a90;text-align:center"><em>Inga rader ännu — klicka <strong>+ Lägg till rad</strong> eller använd en snabbknapp.</em></td>`;
+        tbody.appendChild(tr);
+        return;
       }
-      // ======== /MOLN ========
+      rows.forEach((r,i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="text" data-i="${i}" data-col="category" value="${escapeHtml(r.category)}" placeholder="Kategori" list="categoryMemory"></td>
+          <td class="right"><input type="number" data-i="${i}" data-col="amount" value="${Number(r.amount)||0}" step="1" inputmode="decimal" placeholder="0"></td>
+          <td>
+            <select data-i="${i}" data-col="type">
+              <option ${r.type==='Utgift'?'selected':''}>Utgift</option>
+              <option ${r.type==='Inkomst'?'selected':''}>Inkomst</option>
+            </select>
+          </td>
+          <td>
+            <select data-i="${i}" data-col="pay">
+              <option value="" ${(!r.pay||r.pay==='')?'selected':''}>-</option>
+              <option value="Autogiro" ${r.pay==='Autogiro'?'selected':''}>Autogiro</option>
+              <option value="E-faktura" ${r.pay==='E-faktura'?'selected':''}>E-faktura</option>
+              <option value="Pappersfaktura" ${r.pay==='Pappersfaktura'?'selected':''}>Pappersfaktura</option>
+              <option value="Annat" ${r.pay==='Annat'?'selected':''}>Annat</option>
+            </select>
+          </td>
+          <td class="col-note">
+            <textarea class="note-input" data-i="${i}" data-col="note" placeholder="Anteckningar (valfritt) – större fält">${escapeHtml(r.note||'')}</textarea>
+          </td>
+          <td class="row-actions">
+            <button data-action="up" data-i="${i}" title="Flytta upp">↑</button>
+            <button data-action="down" data-i="${i}" title="Flytta ner">↓</button>
+            <button data-action="neg" data-i="${i}" title="Växla +/−">±</button>
+            <button data-action="del" data-i="${i}" title="Ta bort" class="danger">Ta bort</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      attachEvents();
+      // auto-gro alla textarea
+      tbody.querySelectorAll('textarea.note-input').forEach(t=>autoGrow(t));
+    }
 
-      // ---- Nollställ ----
-      resetBtn.onclick = ()=>{
-        if(!confirm('Nollställa ALLT (rader + lön) till 0?')) return;
-        rows = [];
-        salary = 0;
-        salaryInput.value = '';
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_SALARY_KEY);
-        try{
-          const base = location.origin + location.pathname;
-          history.replaceState(null, '', `${base}?key=${encodeURIComponent(getKey())}`);
-        }catch(_){}
-        render(); updateTotals();
-        updateShareInAddressBar();
-        alert('Allt är nollställt.');
-      };
+    function attachEvents(){
+      tbody.querySelectorAll('input[data-col], select[data-col], textarea[data-col]').forEach(el=>{
+        const handler = ()=>{
+          const i = +el.dataset.i, col = el.dataset.col;
+          if(!rows[i]) return;
+          if(col==='amount') rows[i][col] = Number(el.value)||0;
+          else rows[i][col] = el.value;
+          if(col==='category') saveCategoryToMemory(el.value);
+          saveLocal(); cloudSaveDebounced(); updateTotals();
+          if(el.tagName==='TEXTAREA') autoGrow(el);
+        };
+        el.addEventListener('input', handler);
+        el.addEventListener('change', handler);
+        if(el.dataset.col==='amount'){
+          el.onfocus = ()=>{ if(el.value==='0'||el.value==='') el.value=''; };
+          el.onblur = ()=>{ if(el.value===''||isNaN(Number(el.value))){ el.value='0'; handler(); } };
+        }
+      });
 
-      // ---- Lås (manuellt) ----
-      lockBtn.onclick = ()=> { forceLock(); };
+      tbody.querySelectorAll('button[data-action]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const i = +btn.dataset.i, act = btn.dataset.action;
+          if(act==='del'){ rows.splice(i,1); render(); }
+          else if(act==='neg'){ rows[i].amount = -rows[i].amount; render(); }
+          else if(act==='up'){ if(i>0) moveRow(i,i-1); }
+          else if(act==='down'){ if(i<rows.length-1) moveRow(i,i+1); }
+          saveLocal(); cloudSaveDebounced(); updateTotals();
+        };
+      });
+    }
 
-      // Körs när lås öppnas
-      function afterUnlock(){
-        cloudLoadFromKey(getKey(), true);
-        render();
-        updateTotals();
-      }
+    function moveRow(from,to){
+      if(from<0||to<0||from>=rows.length||to>=rows.length) return;
+      const item = rows.splice(from,1)[0]; rows.splice(to,0,item); render();
+    }
 
-      // GO
-      init();
-    })();
+    /* Lägg till rad-knapp */
+    addRowBtn.onclick = ()=>{
+      rows.push({category:'', amount:0, type:'Utgift', pay:'', note:''});
+      render(); updateTotals(); saveLocal(); cloudSaveDebounced();
+      const lastInput = document.querySelector('#tbody tr:last-child td:first-child input');
+      if(lastInput) lastInput.focus();
+    };
+
+    /* Totals */
+    function updateTotals(){
+      let sumIncome = 0, sumExpense = 0;
+      rows.forEach(r=>{
+        const amt = Number(r.amount)||0;
+        if(r.type==='Inkomst') sumIncome += amt; else sumExpense += amt;
+      });
+      totalIncomeEl.textContent  = fmt.format(Math.round(sumIncome));
+      totalExpenseEl.textContent = fmt.format(Math.round(sumExpense));
+      const s = Number(salary)||0;
+      salaryDisplayEl.textContent = fmt.format(Math.round(s));
+      const salaryLeft = Math.round(s - sumExpense);
+      salaryLeftEl.textContent = fmt.format(salaryLeft);
+      const balance = Math.round(s + sumIncome - sumExpense);
+      balanceEl.textContent = fmt.format(balance);
+      bufferEl.textContent = fmt.format(balance);
+
+      salaryLeftEl.classList.toggle('bad', salaryLeft<0);
+      salaryLeftEl.classList.toggle('good', salaryLeft>=0);
+      balanceEl.classList.toggle('bad', balance<0);
+      balanceEl.classList.toggle('good', balance>=0);
+      bufferEl.classList.toggle('bad', balance<0);
+      bufferEl.classList.toggle('good', balance>=0);
+    }
+
+    /* Dela som bild */
+    async function ensureHtml2Canvas(){
+      if(window.html2canvas) return;
+      await new Promise((res, rej)=>{
+        const s = document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        s.onload=res; s.onerror=()=>rej(new Error('Kunde inte ladda html2canvas'));
+        document.head.appendChild(s);
+      });
+    }
+    function buildImageSourceElement(){
+      const tmp=document.createElement('div');
+      tmp.style.position='fixed'; tmp.style.left='-99999px'; tmp.style.top='0';
+      tmp.style.padding='12px'; tmp.style.background='#ffffff';
+      tmp.style.width=(document.querySelector('.table-wrap')?.offsetWidth||800)+'px';
+      const title=document.createElement('div');
+      title.style.font='600 18px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial';
+      title.style.margin='0 0 8px'; title.textContent='Budgetöversikt';
+      tmp.appendChild(title);
+      const tableClone=document.querySelector('.table-wrap')?.cloneNode(true);
+      const sumClone=document.querySelector('.sum-grid')?.cloneNode(true);
+      if(tableClone) tmp.appendChild(tableClone);
+      if(sumClone){ sumClone.style.marginTop='8px'; tmp.appendChild(sumClone); }
+      document.body.appendChild(tmp); return tmp;
+    }
+    function dataURLFromCanvas(c){ try{ return c.toDataURL('image/png'); }catch(_){ return null; } }
+    shareImageBtn.onclick = async ()=>{
+      try{
+        await ensureHtml2Canvas();
+        const src=buildImageSourceElement();
+        const canvas=await html2canvas(src,{backgroundColor:'#ffffff',scale:window.devicePixelRatio>1?2:1,useCORS:true});
+        document.body.removeChild(src);
+        const url=dataURLFromCanvas(canvas);
+        if(!url) throw new Error('PNG misslyckades');
+        const a=document.createElement('a'); a.download='budget.png'; a.href=url; document.body.appendChild(a); a.click(); a.remove();
+      }catch(e){ alert('Kunde inte skapa bild: ' + e.message); }
+    };
+
+    /* Nollställ (påverkar ej snabbknappar/minne) */
+    resetBtn.onclick = ()=>{
+      if(!confirm('Nollställa rader + lön? (Kategori-minne och snabbknappar påverkas inte)')) return;
+      rows=[]; salary=0; salaryInput.value='';
+      saveLocal(); render(); updateTotals(); cloudSave();
+    };
+
+    /* GO */
+    loadChips();
+    init();
+  })();
   </script>
-</div>
-<!-- ======= /BUDGET-APP ======= -->
+</body>
+</html>
