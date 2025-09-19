@@ -37,6 +37,8 @@
     .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
     .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--card-border);background:#fff;cursor:pointer}
     .chip .x{font-weight:900;opacity:.55;cursor:pointer}
+    /* NY: redigera-ikon på chip */
+    .chip .edit{font-weight:900;opacity:.55;cursor:pointer}
 
     .salary-box{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
     .salary-box input{font-size:16px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;width:220px;min-height:44px;background:#fff;color:var(--card-text)}
@@ -229,7 +231,7 @@
     </div>
   </div>
 
-  <!-- Modal: skapa snabbknapp -->
+  <!-- Modal: skapa/redigera snabbknapp -->
   <div class="modal" id="chipModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="chipTitle">
       <h3 id="chipTitle">Ny snabbknapp</h3>
@@ -350,6 +352,9 @@
     let rows = [];
     let salary = 0;
 
+    /* ====== Snabbknapp-redigering ====== */
+    let editingChipIndex = -1; // -1 = skapa ny; >=0 = redigera befintlig
+
     /* ====== LÅS ====== */
     const LOCK = { pin:'8987', timeoutMs: 60*60*1000 };
     const lockEl = document.getElementById('lock');
@@ -413,14 +418,36 @@
     clearMemBtn.onclick = ()=>{ if(confirm('Rensa endast kategori-minnet? (påverkar inte dina rader)')) clearCategoryMemory(); };
 
     /* ====== SNABBKNAPPAR (per budget-key) ====== */
-    function openChipModal(){
+    function openChipModal(index = -1){
+      editingChipIndex = (typeof index === 'number') ? index : -1;
+
+      // nollställ
       mLabel.value = ''; mAmount.value=''; mType.value='Utgift'; mPay.value=''; mNote.value='';
       mMirror.checked = false;
+
+      if(editingChipIndex > -1){
+        const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
+        const c = list[editingChipIndex] || {};
+        // fyll i värden
+        mLabel.value  = c.label || '';
+        mAmount.value = (typeof c.amount !== 'undefined') ? c.amount : '';
+        mType.value   = (c.type === 'Inkomst') ? 'Inkomst' : 'Utgift';
+        mPay.value    = c.pay || '';
+        mNote.value   = c.note || '';
+        mMirror.checked = !!(c.note && c.pay && c.note === c.pay);
+
+        document.getElementById('chipTitle').textContent = 'Redigera snabbknapp';
+        mSave.textContent = 'Spara ändringar';
+      } else {
+        document.getElementById('chipTitle').textContent = 'Ny snabbknapp';
+        mSave.textContent = 'Spara snabbknapp';
+      }
+
       chipModal.classList.add('open');
       mLabel.focus();
     }
     function closeChipModal(){ chipModal.classList.remove('open'); }
-    addChipBtn.addEventListener('click', openChipModal);
+    addChipBtn.addEventListener('click', ()=>openChipModal(-1));
     mCancel.addEventListener('click', closeChipModal);
     chipModal.addEventListener('click', (e)=>{ if(e.target===chipModal) closeChipModal(); });
     mMirror.addEventListener('change', ()=>{
@@ -432,6 +459,7 @@
     mSave.addEventListener('click', ()=>{
       const label = mLabel.value.trim();
       if(!label){ alert('Skriv en kategori.'); mLabel.focus(); return; }
+
       const obj = {
         label,
         amount: Number(mAmount.value)||0,
@@ -439,8 +467,15 @@
         pay: mPay.value || '',
         note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
+
       const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-      list.push(obj);
+
+      if(editingChipIndex > -1 && list[editingChipIndex]){
+        list[editingChipIndex] = obj; // uppdatera
+      } else {
+        list.push(obj); // skapa ny
+      }
+
       localStorage.setItem(LS_QUICK(), JSON.stringify(list));
       saveCategoryToMemory(label);
       loadChips();
@@ -450,22 +485,59 @@
     function loadChips(){
       const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
       chipsWrap.querySelectorAll('.chip').forEach(e=>e.remove());
+
       list.forEach((c,idx)=>{
         const el = document.createElement('div');
         el.className = 'chip';
+
         const tags = [c.type||'Utgift', c.pay||'−'].filter(Boolean).join(' · ');
-        el.innerHTML = `<span>${escapeHtml(c.label)} <small style="opacity:.7">(${escapeHtml(tags)})</small></span><span class="x" title="Ta bort" data-i="${idx}">×</span>`;
+        el.innerHTML = `
+          <span>${escapeHtml(c.label)} <small style="opacity:.7">(${escapeHtml(tags)})</small></span>
+          <span class="edit" title="Redigera" data-i="${idx}">✎</span>
+          <span class="x" title="Ta bort" data-i="${idx}">×</span>
+        `;
+
+        // Klick på chip = lägg rad (om man inte klickar på ikonerna)
         el.addEventListener('click',(ev)=>{
-          if(ev.target.classList.contains('x')) return;
-          rows.push({ category:c.label||'', amount:Number(c.amount||0), type:(c.type||'Utgift'), pay:(c.pay||''), note:(c.note||'') });
+          if(ev.target.classList && (ev.target.classList.contains('x') || ev.target.classList.contains('edit'))) return;
+          rows.push({
+            category:c.label||'',
+            amount:Number(c.amount||0),
+            type:(c.type||'Utgift'),
+            pay:(c.pay||''),
+            note:(c.note||'')
+          });
           render(); updateTotals(); saveLocal(); cloudSaveDebounced();
         });
+
+        // Redigera via ✎
+        el.querySelector('.edit').addEventListener('click',(ev)=>{
+          ev.stopPropagation();
+          openChipModal(idx);
+        });
+
+        // Långtryck öppnar redigera
+        let pressTimer;
+        const startPress = (e)=> {
+          if(e.target.classList && (e.target.classList.contains('x') || e.target.classList.contains('edit'))) return;
+          pressTimer = setTimeout(()=> openChipModal(idx), 500);
+        };
+        const cancelPress = ()=> clearTimeout(pressTimer);
+        el.addEventListener('touchstart', startPress, {passive:true});
+        el.addEventListener('mousedown',   startPress);
+        el.addEventListener('touchend',    cancelPress);
+        el.addEventListener('mouseup',     cancelPress);
+        el.addEventListener('mouseleave',  cancelPress);
+
+        // Ta bort via ×
         el.querySelector('.x').addEventListener('click',(ev)=>{
           ev.stopPropagation();
           const arr = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
-          arr.splice(idx,1); localStorage.setItem(LS_QUICK(), JSON.stringify(arr));
+          arr.splice(idx,1);
+          localStorage.setItem(LS_QUICK(), JSON.stringify(arr));
           loadChips();
         });
+
         chipsWrap.insertBefore(el, addChipBtn);
       });
     }
