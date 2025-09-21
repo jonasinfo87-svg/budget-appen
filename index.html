@@ -2,2168 +2,1185 @@
 <html lang="sv">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Varukorgen</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Budgetmall</title>
   <style>
-    /* ===== Tema / grund ===== */
     :root{
-      --bg:#fff8f8; --bg2:#fffdfd;
-      --text:#262626; --text-soft:#474747; --text-invert:#ffffff;
-      --accent:#e30613; --muted:#b3b3b3; --good:#1b8f4a; --bad:#cc1f1f;
-      --card:#ffffff; --card-border:#efc9cc; --table-head:#c90f13;
-      --card-text:#1f1f1f; --card-text-soft:#4a4a4a;
+      --bg:#f5fbfd; --bg2:#e9f4f7;
+      --text:#073642; --text-soft:#1c4a53; --text-invert:#f3fcff;
+      --accent:#0d6c77; --muted:#88a8ad; --good:#1b8f4a; --bad:#d23b3b;
+      --card:#ffffff; --card-border:#d6e9eb; --table-head:#0b5a64;
+      --card-text:#073642; --card-text-soft:#24515a;
     }
-    body{margin:0;background:
-      radial-gradient(1200px 800px at 15% -10%, rgba(227,6,19,.08), transparent 60%),
-      radial-gradient(1100px 900px at 110% 110%, rgba(185,0,12,.08), transparent 62%),
-      radial-gradient(900px 700px at 50% 120%, rgba(214,20,28,.06), transparent 65%),
-      linear-gradient(180deg, var(--bg), var(--bg2));
-      color:var(--text); font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
+    body{
+      margin:0; color:var(--text);
+      font-family:Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
+      background:
+        radial-gradient(1200px 800px at 15% -10%, rgba(8, 90, 100,.10), transparent 60%),
+        radial-gradient(1100px 900px at 110% 110%, rgba(5, 55, 70,.10), transparent 62%),
+        radial-gradient(900px 700px at 50% 120%, rgba(19, 60, 70,.09), transparent 65%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
       min-height:100vh;
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:24px;position:relative}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
 
-    /* ===== Knappstrip ===== */
     .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
-    button{background:var(--card);color:var(--card-text);border:1px solid var(--card-border);padding:10px 12px;border-radius:12px;cursor:pointer;box-shadow:0 1px 1px rgba(0,0,0,.04);font-size:16px;min-height:44px}
+    button{
+      background:var(--card); color:var(--card-text);
+      border:1px solid var(--card-border);
+      padding:10px 12px; border-radius:12px; cursor:pointer;
+      box-shadow:0 1px 1px rgba(0,0,0,.04); min-height:44px; font-size:16px
+    }
     button.primary{background:var(--accent);color:#fff;border:0}
-    button:hover{filter:brightness(.98)}
-    .danger{background:#ffe5e6;border:1px solid #f3b4b8}
+    .danger{background:#ffd7d7;border:1px solid #f1bcbc}
 
-    /* ===== Kort / småtexter ===== */
-    .small{font-size:13px;color:var(--text-soft);font-weight:800}
-    .card{background:linear-gradient(180deg,#fff,#fff7f7);color:var(--card-text);border-radius:14px;padding:12px;border:1px solid var(--card-border);box-shadow:0 8px 24px rgba(0,0,0,.10);min-width:220px}
-    .big{font-size:18px;font-weight:800}
-    .good{color:var(--good)} .bad{color:var(--bad)}
-    .salary-box{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
-    .salary-box input{font-size:16px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;width:180px;min-height:44px}
+    /* Toolbar + chips */
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px;align-items:center}
+    .chip{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;border:1px solid var(--card-border);
+      background:#fff;cursor:pointer; user-select:none;
+    }
+    .chip .x{font-weight:900;opacity:.55;cursor:pointer}
+    .chip .label small{opacity:.65}
+    .chip .edit, .chip .handle, .chip .mv{
+      font-weight:700; opacity:.7; cursor:pointer; padding:0 4px; border-radius:6px;
+      transition: all 0.2s ease;
+    }
+    .chip .edit:hover, .chip .mv:hover{
+      opacity: 1; background: rgba(13, 108, 119, 0.1); transform: scale(1.1);
+    }
+    .chip .handle{ 
+      cursor:grab; 
+      font-size: 16px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .chip .handle:hover{
+      background: rgba(13, 108, 119, 0.1);
+      transform: scale(1.1);
+    }
+    .chip .handle:active{
+      cursor: grabbing;
+    }
+    .chip.dragging{ 
+      opacity:.9; 
+      transform: rotate(2deg) scale(1.05);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+      z-index: 1000;
+      transition: none;
+    }
+    .chip.placeholder{ 
+      border:2px dashed var(--accent); 
+      background: rgba(13, 108, 119, 0.08); 
+      cursor:default; 
+      padding:6px 12px;
+      animation: smoothPulse 1.2s ease-in-out infinite;
+      transform: scale(0.98);
+      opacity: 0.8;
+    }
+    @keyframes smoothPulse {
+      0%, 100% { 
+        opacity: 0.8; 
+        transform: scale(0.98);
+        background: rgba(13, 108, 119, 0.08);
+      }
+      50% { 
+        opacity: 1; 
+        transform: scale(1.01);
+        background: rgba(13, 108, 119, 0.12);
+      }
+    }
 
-    /* ===== Snabbknappar ===== */
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
-    .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--card-border);background:#fff;cursor:pointer}
-    .chip .x{font-weight:900;opacity:.5;cursor:pointer}
-    .chip .edit{font-weight:900;opacity:.7;cursor:pointer;margin-right:4px;}
-    .chip .edit:hover{opacity:1;}
-    
-    /* Lägg till snabbknapp knapp */
-    #addChipBtn{background:var(--card); color:var(--card-text); border:1px solid var(--card-border); padding:6px 10px; border-radius:999px; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.2s ease; box-shadow:0 1px 1px rgba(0,0,0,.04); display:inline-flex; align-items:center; gap:6px; margin-bottom:16px;}
-    #addChipBtn:hover{filter:brightness(.98);}
-    #addChipBtn.new-section{padding:4px 8px; font-size:11px; font-weight:400; background:#f8f9fa; color:#6c757d; border:1px solid #dee2e6; box-shadow:none; animation:pulse 2s infinite;}
-    @keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
-    
+    /* Sortläge: visa pilar i både toolbar (framtidssäkrat) och sektionerna */
+    .chips.sort-mode .mv{ display:inline-block }
+    .chip-sections.sort-mode .mv{ display:inline-block }
+    .mv{ display:none }
+    #sortChipsBtn.active{ background:#e7f6f8; border-color:#bfe5ea }
+
     /* Sektioner */
-    .section-header{display:flex; align-items:center; gap:8px; margin:16px 0 8px; padding:8px 12px; background:linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius:8px; border:1px solid var(--card-border);}
-    .section-header h3{margin:0; font-size:16px; font-weight:700; color:var(--text);}
-    .section-header .section-actions{display:flex; gap:4px; margin-left:auto;}
-    .section-header button{background:transparent; border:1px solid var(--card-border); padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; opacity:.7;}
-    .section-header button:hover{opacity:1; background:var(--card);}
-    .section-chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; min-height:40px; border:2px dashed transparent; border-radius:8px; padding:8px; transition:all 0.2s ease; width:100%;}
-    .section-chips .chip{margin:0;}
-    .section-chips.drag-over{border-color:#007bff; background-color:rgba(0,123,255,0.1);}
-    .chip{cursor:grab; transition:all 0.2s ease;}
-    .chip:active{cursor:grabbing;}
-    .chip.dragging{opacity:0.5; transform:scale(1.05);}
+    .chip-sections{ display:grid; gap:12px; }
+    .chip-section{
+      background:#fff; border:1px solid var(--card-border); border-radius:12px;
+      padding:10px;
+    }
+    .chip-section .sec-head{
+      display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    }
+    .chip-section .sec-head h4{
+      margin:0; font-size:14px; font-weight:800; color:#24515a;
+    }
+    .chip-section .sec-head .sec-tools{ margin-left:auto; display:flex; gap:6px; }
+    .chip-bin{
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:40px;
+    }
+    .chip-bin.empty::after{
+      content:'Släpp snabbknappar här'; color:#86a6ab; font-size:13px;
+      font-style: italic;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+    .chip-bin.empty:hover::after{
+      color: var(--accent);
+      opacity: 1;
+    }
 
-    /* ===== Tabell ===== */
-    .table-wrap{overflow:auto;background:var(--card);padding:8px;border-radius:12px;border:1px solid var(--card-border);margin-bottom:16px}
-    table{width:100%;border-collapse:collapse;min-width:1300px;background:#fff;border-radius:10px;overflow:hidden}
-    th,td{padding:10px 8px;border:1px solid #f1d3d5;text-align:left;vertical-align:middle}
+    .salary-box{display:flex;gap:12px;align-items:center;margin:8px 0 14px}
+    .salary-box input{font-size:16px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;width:220px;min-height:44px;background:#fff;color:var(--card-text)}
+
+    .table-wrap{overflow:auto;background:var(--card);padding:8px;border-radius:12px;border:1px solid var(--card-border)}
+    table{width:100%;border-collapse:collapse;min-width:1180px;background:#fff;border-radius:10px;overflow:hidden;color:var(--card-text)}
+    th,td{padding:10px 8px;border:1px solid #cfe6e9;text-align:left;vertical-align:middle}
     th{background:var(--table-head);color:#fff;font-weight:800;white-space:nowrap}
     .right{text-align:right}
-    tr.done{background:#e9f8ee}
-    tr.done td{border-color:#ccead3}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .row-actions button{padding:8px 10px;min-height:40px}
 
-    /* Inputs i celler (grund) */
+    th.col-note{width:520px}
+    td.col-note textarea.note-input{
+      width:100%; min-height:48px; max-height:200px; resize:vertical;
+      box-sizing:border-box; border:1px solid var(--card-border); border-radius:10px;
+      padding:10px 12px; font-size:16px; line-height:1.35; background:#fff; color:var(--card-text);
+      overflow:auto; white-space:pre-wrap
+    }
+
     td input[type="text"],
     td input[type="number"],
     td select{
       width:100%; box-sizing:border-box;
       border:1px solid var(--card-border);
-      background:#fff; color:#1f1f1f;
+      background:#fff; color:#073642;
       border-radius:10px; padding:10px 12px;
       font-size:16px; line-height:1.25; min-height:44px;
       appearance:none;
     }
-    td input[readonly]{background:#fafafa}
+    td input::placeholder{color:#86a6ab}
     input[type=number]::-webkit-outer-spin-button,
     input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
     input[type=number]{ -moz-appearance:textfield; }
 
-    th.notes-col{min-width:220px}
-    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
-    .row-actions button{padding:8px 10px;min-height:40px}
-
-    /* ======= NYTT: MER UTRYMME för Kategori/Typ/Betalsätt ======= */
-    th.category-col, td.category-col { min-width: 300px; }
-    th.type-col,     td.type-col     { min-width: 180px; }
-    th.pay-col,      td.pay-col      { min-width: 190px; }
-    .category-col input,
-    .type-col select,
-    .pay-col select{
-      min-height:64px;
-      padding:14px 16px;
-      font-size:18px;
-      font-weight:600;
-      line-height:1.3;
+    .sum-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}
+    .card{
+      background:linear-gradient(180deg,#fff,#f7ffff);
+      color:var(--card-text); border-radius:16px; padding:14px;
+      border:1px solid var(--card-border); box-shadow:0 8px 24px rgba(0,0,0,.10)
     }
-    .type-col select option,
-    .pay-col select option{ font-size:18px; }
+    .card .small{font-size:14px;font-weight:700;color:var(--card-text-soft);margin-bottom:4px}
+    .big{font-size:22px;font-weight:900;letter-spacing:.2px}
+    .good{color:var(--good)} .bad{color:var(--bad)}
+    .c-salary{background:#ffeef0;border-color:#f3c2c6}
+    .c-left{background:#fff5e7;border-color:#f6d9b5}
+    .c-income{background:#e9f8ee;border-color:#c2e9c9}
+    .c-expense{background:#ffe8ea;border-color:#f3b4b8}
+    .c-balance{background:#f6f7ff;border-color:#d7defa}
+    .c-buffer{background:#f1f7ff;border-color:#cfe3ff}
 
-    /* Summeringar */
-    .sum-box{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; margin-top:8px; }
-    .card.salary{background:#fceef0;border-color:#f3c2c6}
-    .card.income{background:#e9f8ee;border-color:#c2e9c9}
-    .card.expense{background:#ffe8ea;border-color:#f3b4b8}
-    .card.salaryLeft{background:#fff4e7;border-color:#f6d9b5}
-    .card.balance,.card.buffer{background:#f6f7ff;border-color:#d7defa}
+    .lock{position:fixed;inset:0;display:none;place-items:center;z-index:100000;
+      backdrop-filter:blur(8px);background:rgba(10,25,30,.78)}
+    .lock.open{display:grid}
+    .lock-card{width:min(92vw,560px);background:#fff;color:#0b3b4c;border:1px solid rgba(214,233,235,.9);
+      border-radius:22px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.24)}
+    .pinbox{display:flex;gap:8px;justify-content:center;margin:6px 0 12px}
+    .pinbox input{width:54px;height:54px;border-radius:12px;text-align:center;font-size:22px;letter-spacing:2px;border:2px solid #cfe3e6;background:#fff}
+    .kbd{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0}
+    .kbd button{font-size:18px;min-height:52px;border-radius:14px}
+    .hint{font-size:12px;color:#777}
 
-    /* Varukorgs-badge */
-    .cart-fab{
-      position:fixed; top:56px; right:16px; z-index:11;
-      display:inline-flex; align-items:center; gap:8px;
-      background:linear-gradient(135deg,#fff,#fff7f7);
-      border:1px solid var(--card-border); border-radius:14px;
-      padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.18); color:#1f1f1f;
+    .live-link{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 10px}
+    .live-link input{flex:1;min-width:260px;padding:10px 12px;border:1px solid var(--card-border);border-radius:10px;background:#fff;color:#073642;min-height:44px}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100001}
+    .modal.open{display:flex}
+    .modal-card{width:min(92vw,560px);background:#fff;border:1px solid var(--card-border);border-radius:16px;padding:16px 16px 12px}
+    .modal h3{margin:0 0 8px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid .full{grid-column:1/-1}
+    .modal input, .modal select, .modal textarea{
+      width:100%;box-sizing:border-box;border:1px solid var(--card-border);border-radius:10px;padding:10px 12px;font-size:16px;min-height:44px
     }
-    .cart-fab .count{min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;padding:0 6px;font-weight:900;font-size:13px;background:var(--accent);color:#fff}
+    .modal textarea{min-height:72px}
+    .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    .modal label{font-size:13px;color:#586e75;display:block;margin:4px 0}
+    .modal .row{display:flex;align-items:center;gap:8px;margin-top:4px}
 
-    /* Mörkt läge */
-    [data-theme="dark"] {
-      --bg: #1a1a1a;
-      --bg2: #2a2a2a;
-      --text: #ffffff;
-      --text-soft: #cccccc;
-      --text-invert: #000000;
-      --accent: #ff4444;
-      --muted: #666666;
-      --good: #4caf50;
-      --bad: #f44336;
-      --card: #2a2a2a;
-      --card-border: #444444;
-      --table-head: #333333;
-      --card-text: #ffffff;
-      --card-text-soft: #cccccc;
-    }
-
-    [data-theme="dark"] body {
-      background: radial-gradient(1200px 800px at 15% -10%, rgba(255,68,68,.08), transparent 60%),
-                  radial-gradient(1100px 900px at 110% 110%, rgba(255,68,68,.08), transparent 62%),
-                  radial-gradient(900px 700px at 50% 120%, rgba(255,68,68,.06), transparent 65%),
-                  linear-gradient(180deg, var(--bg), var(--bg2));
-    }
-
-    [data-theme="dark"] ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    [data-theme="dark"] ::-webkit-scrollbar-track {
-      background: var(--bg);
-    }
-
-    [data-theme="dark"] ::-webkit-scrollbar-thumb {
-      background: var(--card-border);
-      border-radius: 4px;
-    }
-
-    /* Mobil meny */
-    .mobile-only { display: none !important; }
-    .mobile-menu {
-      position: fixed;
-      top: 0;
-      right: -300px;
-      width: 300px;
-      height: 100vh;
-      background: var(--card);
-      border-left: 1px solid var(--card-border);
-      z-index: 1000;
-      transition: right 0.3s ease;
-      box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-    }
-
-    .mobile-menu.show {
-      right: 0;
-    }
-
-    .mobile-menu-content {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .mobile-menu-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .mobile-menu-overlay.show {
-      opacity: 1;
-    }
-
-    /* Mobil */
-    @media (max-width:768px){
-      .mobile-only { display: flex !important; }
-      .controls .mobile-only { order: 999; }
-      .controls button:not(.mobile-only) { display: none; }
-      .controls button.primary { display: flex; }
-      .controls #sectionsBtn { display: flex; }
-      .controls #darkModeBtn { display: flex; }
-      .controls #clearChecksBtn { display: flex; }
-    }
-
-    @media (max-width:600px){
-      .wrap{ padding:14px }
-      .salary-box{ flex-direction:column; align-items:stretch }
-      .salary-box input{ width:90% }
-      .sum-box{ grid-template-columns:repeat(2,minmax(0,1fr)) }
-      table{ min-width:1100px }
-      .cart-fab{ top:66px; right:12px }
-
-      th.category-col, td.category-col { min-width: 320px; }
-      th.type-col,     td.type-col     { min-width: 200px; }
-      th.pay-col,      td.pay-col      { min-width: 210px; }
-      .category-col input,
-      .type-col select,
-      .pay-col select{ min-height:60px; font-size:19px; }
-    }
-    @media (max-width:360px){
-      .sum-box{ grid-template-columns:1fr; }
-    }
-
-    /* Modal (kvitto) */
-    .modal-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; z-index:99998;}
-    .modal{position:fixed; inset:0; display:none; place-items:center; z-index:99999;}
-    .modal.open,.modal-backdrop.open{display:grid}
-    .modal-card{width:min(92vw,720px); background:#fff; color:#1f1f1f; border-radius:16px; border:1px solid var(--card-border); box-shadow:0 20px 80px rgba(0,0,0,.35); overflow:hidden;}
-    .modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(0,0,0,.08)}
-    .modal-body{padding:12px 14px; display:grid; gap:10px}
-    .modal-actions{display:flex; gap:8px; justify-content:flex-end; padding:12px 14px; border-top:1px solid rgba(0,0,0,.08)}
-    .modal input[type="email"]{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--card-border); background:#fff; color:#1f1f1f; font-size:16px; min-height:44px}
-    .receipt{font:14px/1.4 ui-sans-serif; background:#fff; color:#222; border:1px dashed #e5a3a8; border-radius:12px; padding:12px; max-height:46vh; overflow:auto;}
-    .pill{display:inline-block; padding:2px 8px; border-radius:999px; font-weight:700; font-size:12px; background:#f6f6f6}
-
-    /* Rabattverktyg modal */
-    .discount-modal .modal-card{width:min(92vw,600px);}
-    .discount-type{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:6px; margin:12px 0;}
-    .discount-type button{background:#f8f9fa; border:2px solid var(--card-border); padding:10px 6px; border-radius:10px; cursor:pointer; transition:all 0.2s; font-size:13px; font-weight:600; text-align:center; line-height:1.2;}
-    .discount-type button.active{background:var(--accent); color:#fff; border-color:var(--accent);}
-    .discount-type button:hover{background:#e9ecef;}
-    .discount-type button.active:hover{background:var(--accent);}
-    .discount-inputs{display:grid; gap:12px; margin:16px 0;}
-    .discount-inputs label{font-weight:600; color:var(--text); margin-bottom:4px; display:block;}
-    .discount-inputs input, .discount-inputs select{width:100%; padding:10px 12px; border:1px solid var(--card-border); border-radius:10px; background:#fff; color:#1f1f1f; font-size:16px; min-height:44px;}
-    .discount-inputs input[type="number"]{max-width:150px;}
-    .discount-preview{background:#f8f9fa; border:1px solid var(--card-border); border-radius:12px; padding:12px; margin:12px 0; font-size:14px;}
-    .discount-preview .preview-title{font-weight:600; margin-bottom:8px; color:var(--text);}
-    .discount-preview .preview-details{color:var(--text-soft);}
-
-    /* Snabbknappverktyg modal */
-    .quick-tool-modal .modal-card{width:min(92vw,500px);}
-    .quick-tool-type{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin:12px 0;}
-    .quick-tool-type button{background:#f8f9fa; border:2px solid var(--card-border); padding:12px 8px; border-radius:12px; cursor:pointer; transition:all 0.2s; font-size:14px; font-weight:600;}
-    .quick-tool-type button.active{background:var(--accent); color:#fff; border-color:var(--accent);}
-    .quick-tool-type button:hover{background:#e9ecef;}
-    .quick-tool-type button.active:hover{background:var(--accent);}
-    .quick-tool-inputs{display:grid; gap:12px; margin:16px 0;}
-    .quick-tool-inputs label{font-weight:600; color:var(--text); margin-bottom:4px; display:block;}
-    .quick-tool-inputs input, .quick-tool-inputs select{width:100%; padding:10px 12px; border:1px solid var(--card-border); border-radius:10px; background:#fff; color:#1f1f1f; font-size:16px; min-height:44px;}
-    .quick-tool-inputs input[type="number"]{max-width:150px;}
-    .quick-tool-preview{background:#f8f9fa; border:1px solid var(--card-border); border-radius:12px; padding:12px; margin:12px 0; font-size:14px;}
-    .quick-tool-preview .preview-title{font-weight:600; margin-bottom:8px; color:var(--text);}
-    .quick-tool-preview .preview-details{color:var(--text-soft);}
-
-    /* ===== Glasig vaktskärm ===== */
-    .gate{position:fixed; inset:0; display:grid; place-items:center; z-index:100000; backdrop-filter: blur(14px); background:rgba(23,19,20,.28);}
-    .gate .panel{ width:clamp(300px, 92vw, 420px); border-radius:20px; padding:18px 16px 14px; background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.72)); border:1px solid rgba(255,255,255,.55); box-shadow:0 20px 80px rgba(0,0,0,.40); }
-    .gate h1{margin:6px 0 12px; font-size:20px; text-align:center;}
-    .pinbox{display:flex; gap:8px; justify-content:center; margin:6px 0 12px}
-    .pinbox input{width:54px; height:54px; border-radius:12px; text-align:center; font-size:22px; letter-spacing:2px; border:1px solid #e8c5c7; background:#fff}
-    .kbd{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:8px 0}
-    .kbd button{font-size:18px; min-height:52px; border-radius:14px}
-    .gate .row{display:flex; justify-content:space-between; align-items:center}
-    .gate .hint{font-size:12px; color:#777}
-    .hidden{display:none !important}
-
-    /* Stor tumvänlig checkruta */
-    .checkcell{ display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; cursor:pointer; user-select:none; }
-    .checkcell input{ position:absolute; opacity:0; width:0; height:0; }
-    .checkcell .box{ position:relative; width:28px; height:28px; border-radius:8px; border:2px solid #d7a7aa; background:#fff; box-shadow: inset 0 1px 0 rgba(0,0,0,.03); }
-    .checkcell input:focus-visible + .box{ box-shadow:0 0 0 3px rgba(227,6,19,.35); }
-    .checkcell input:checked + .box{ background:linear-gradient(180deg,#e30613,#cc0d18); border-color:#a90b11; }
-    .checkcell input:checked + .box::after{ content:""; position:absolute; left:8px; top:4px; width:8px; height:16px; border:3px solid #fff; border-top:0; border-left:0; transform:rotate(45deg); }
-    th:first-child, td:first-child{ width:56px; }
+    @media (max-width:600px){ .wrap{padding:14px} .sum-grid{grid-template-columns:1fr} table{min-width:980px} }
   </style>
 </head>
 <body>
-  <!-- Varukorgs-badge -->
-  <div class="cart-fab" id="cartFab" role="button" tabindex="0" title="Visa kvitto / skicka">
-    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" style="width:22px;height:22px"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 .001 3.999A2 2 0 0 0 17 18ZM3 3h2l2.4 10.4A3 3 0 0 0 10.3 16h6.9a3 3 0 0 0 2.9-2.2L22 7H6.2" fill="currentColor"/></svg>
-    <span id="cartCount" class="count">0</span>
-  </div>
-
   <div class="wrap" aria-live="polite">
-    <!-- Veckoväljare -->
-    <div class="week-selector" style="margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
-      <button class="week-btn active" data-week="1" style="background: var(--accent); color: white;">Vecka 1</button>
-      <button class="week-btn" data-week="2">Vecka 2</button>
-      <button class="week-btn" data-week="3">Vecka 3</button>
-      <button class="week-btn" data-week="4">Vecka 4</button>
-      <button class="week-btn" data-week="quick">Snabbhandla</button>
-    </div>
-
-    <!-- Knapp-list -->
     <div class="controls">
-      <button class="primary" id="addRowBtn">+ Lägg till vara</button>
-      <button id="sectionsBtn">Sektioner</button>
-      <button id="darkModeBtn">Mörkt läge</button>
+      <button class="primary" id="addRowBtn">+ Lägg till rad</button>
       <button id="shareBtn">Dela länk</button>
       <button id="copyBtn">Kopiera</button>
-      <button id="clearChecksBtn">Rensa check</button>
-      <button id="logoutBtn">Logga ut</button>
-      <button id="resetBtn" class="danger" title="Nollställ allt till 0">Nollställ</button>
-      <!-- NY: nollställ endast kategori-minnet -->
-      <button id="resetMemBtn" title="Rensa lagrade kategorier">Nollställ minne</button>
-      <button id="deleteAllBtn" class="danger" title="Ta bort allt">Delete All</button>
-      
-      <!-- Mobil hamburgermeny -->
-      <button id="mobileMenuBtn" class="mobile-only" style="display: none;">☰</button>
+      <button id="lockBtn">Lås</button>
+      <button id="resetBtn" class="danger">Nollställ</button>
+      <button id="clearMemBtn">Nollställ minne</button>
+      <button id="deleteAllBtn" class="danger">Delete All</button>
     </div>
 
-    <!-- Mobil meny -->
-    <div id="mobileMenu" class="mobile-menu" style="display: none;">
-      <div class="mobile-menu-content">
-        <button id="mobileShareBtn">Dela länk</button>
-        <button id="mobileCopyBtn">Kopiera</button>
-        <button id="mobileLogoutBtn">Logga ut</button>
-        <button id="mobileResetBtn" class="danger">Nollställ</button>
-        <button id="mobileResetMemBtn">Nollställ minne</button>
-        <button id="mobileDeleteAllBtn" class="danger">Delete All</button>
-      </div>
-    </div>
-    <div id="mobileMenuOverlay" class="mobile-menu-overlay" style="display: none;"></div>
-
-    <!-- Lägg till snabbknapp - fast placerad -->
-    <div style="margin-bottom: 16px;">
-      <button id="addChipBtn" title="Lägg till snabbknapp">+ Lägg till snabbknapp</button>
-    </div>
-
-    <!-- Snabbknappar -->
+    <!-- Snabbknappar: toolbar -->
     <div class="chips" id="chips">
+      <button id="addChipBtn" title="Lägg till snabbknapp">+ Lägg till snabbknapp</button>
+      <button id="sortChipsBtn" title="Aktivera sortering (pilar)">Sortera</button>
+      <button id="addSectionBtn" title="Skapa ny sektion för snabbknappar">+ Ny sektion</button>
+    </div>
+    <!-- Sektioner för placering -->
+    <div class="chip-sections" id="chipSections"></div>
+
+    <!-- Moln-status (dold delningslänk) -->
+    <div class="live-link" style="display: none;">
+      <input id="liveLink" type="text" readonly />
+      <button id="copyLiveLinkBtn">Kopiera länk</button>
+    </div>
+    
+    <!-- Status-indikator -->
+    <div style="text-align: center; margin: 8px 0;">
+      <span class="small" id="cloudInfo" style="color: var(--good); font-weight: 600;"></span>
     </div>
 
-    <!-- Månadsbudget -->
+    <!-- Lön -->
     <div class="card salary-box">
       <div>
-        <div class="small">Månads netto</div>
-        <input id="salaryInput" type="number" step="1" min="0" placeholder="t.ex. 3 500 (matbudget)" />
+        <div class="small">Månadslön (netto)</div>
+        <input id="salaryInput" type="number" step="1" min="0" placeholder="t.ex. 36 000" />
       </div>
-      <div class="small">Används i beräkningarna: <strong>Månads netto − (Totala varukorgen − Kampanjer)</strong></div>
+      <div class="small">Saldot = <strong>(lön + övriga inkomster) − utgifter</strong></div>
     </div>
 
     <!-- Tabell -->
     <div class="table-wrap card">
-      <table id="budgetTable" aria-label="Varukorg">
+      <table id="budgetTable" aria-label="Budgettabell">
         <thead>
           <tr>
-            <th>✓</th>
-            <th class="category-col">Kategori</th>
-            <th style="width:110px">Antal</th>
-            <th style="width:110px">Enhet</th>
-            <th style="width:140px">à-pris (nu)</th>
-            <th style="width:140px">Ord. à-pris</th>
-            <th style="width:120px">Belopp</th>
-            <th class="type-col">Typ</th>
-            <th class="pay-col">Betalsätt</th>
-            <th class="notes-col">Anteckningar</th>
-            <th style="width:230px">Åtgärd</th>
+            <th style="width:260px">Kategori</th>
+            <th style="width:140px">Belopp</th>
+            <th style="width:140px">Typ</th>
+            <th style="width:170px">Betalsätt</th>
+            <th class="col-note">Anteckningar</th>
+            <th style="width:220px">Åtgärd</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr><td colspan="11" class="empty-cell" style="padding:18px;color:#9b9b9b;text-align:center"><em>Inga rader ännu — klicka <strong>+ Lägg till vara</strong> eller använd en snabbknapp.</em></td></tr>
+          <tr><td colspan="6" style="padding:18px;color:#6b8a90;text-align:center"><em>Inga rader ännu — klicka <strong>+ Lägg till rad</strong> eller använd en snabbknapp.</em></td></tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Summering -->
-    <div class="sum-box">
-      <div class="card salary"><div class="small">Matkostnad</div><div id="salaryDisplay" class="big">0 kr</div></div>
-      <div class="card salaryLeft"><div class="small">Kvar i matpengar</div><div id="salaryLeft" class="big">0 kr</div></div>
-      <div class="card income"><div class="small">Kampanjer</div><div id="totalIncome" class="big good">0 kr</div></div>
-      <div class="card expense"><div class="small">Totala varukorgen</div><div id="totalExpense" class="big bad">0 kr</div></div>
-      <div class="card balance"><div class="small">Att betala i kassan</div><div id="balance" class="big">0 kr</div></div>
-      <div class="card buffer"><div class="small">Sparat på maten</div><div id="buffer" class="big">0 kr</div></div>
-    </div>
-  </div>
+    <!-- Kategori-minne -->
+    <datalist id="categoryMemory"></datalist>
 
-  <!-- Kvitto-modal -->
-  <div class="modal-backdrop" id="receiptBackdrop" aria-hidden="true"></div>
-  <div class="modal" id="receiptModal" role="dialog" aria-modal="true" aria-labelledby="receiptTitle" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="receiptTitle" style="margin:0;font-size:18px;">Kvitto</h3>
-        <span class="pill" id="receiptMeta">–</span>
-        <button id="receiptCloseBtn" title="Stäng">Stäng</button>
+    <!-- Sumboxar -->
+    <div class="sum-grid">
+      <div class="card c-salary">
+        <div class="small">Månadslön</div>
+        <div id="salaryDisplay" class="big">0 kr</div>
       </div>
-      <div class="modal-body">
-        <label class="small" for="receiptEmail">Skicka till e-post</label>
-        <input type="email" id="receiptEmail" placeholder="namn@exempel.se" />
-        <div class="receipt" id="receiptPreview"><em>Inget att visa ännu.</em></div>
+      <div class="card c-left">
+        <div class="small">Kvar av lönen (utan övriga inkomster)</div>
+        <div id="salaryLeft" class="big">0 kr</div>
       </div>
-      <div class="modal-actions">
-        <button id="receiptCopyBtn">Kopiera HTML</button>
-        <button id="receiptPdfBtn">Spara PDF</button>
-        <button id="receiptPrintBtn">Skriv ut</button>
-        <button class="primary" id="receiptSendBtn">Skicka</button>
+      <div class="card c-income">
+        <div class="small">Totala inkomster (övriga)</div>
+        <div id="totalIncome" class="big good">0 kr</div>
+      </div>
+      <div class="card c-expense">
+        <div class="small">Totala utgifter</div>
+        <div id="totalExpense" class="big bad">0 kr</div>
+      </div>
+      <div class="card c-balance">
+        <div class="small">Saldo (inkl. lön + övriga inkomster)</div>
+        <div id="balance" class="big">0 kr</div>
+      </div>
+      <div class="card c-buffer">
+        <div class="small">Buffert (möjlig att spara)</div>
+        <div id="buffer" class="big">0 kr</div>
       </div>
     </div>
   </div>
 
-  <!-- Rabattverktyg modal -->
-  <div class="modal-backdrop" id="discountBackdrop" aria-hidden="true"></div>
-  <div class="modal discount-modal" id="discountModal" role="dialog" aria-modal="true" aria-labelledby="discountTitle" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="discountTitle" style="margin:0;font-size:18px;">Rabattverktyg</h3>
-        <button id="discountCloseBtn" title="Stäng">Stäng</button>
+  <!-- Lås -->
+  <div class="lock" id="lock">
+    <div class="lock-card">
+      <h3 style="margin:0 0 6px">Skyddad budget</h3>
+      <div class="small" style="margin-bottom:10px">Skriv PIN för att öppna (session: 60 min)</div>
+      <div class="pinbox">
+        <input id="pin1" inputmode="numeric" maxlength="1" />
+        <input id="pin2" inputmode="numeric" maxlength="1" />
+        <input id="pin3" inputmode="numeric" maxlength="1" />
+        <input id="pin4" inputmode="numeric" maxlength="1" />
       </div>
-      <div class="modal-body">
-        <div class="discount-type">
-          <button type="button" data-type="percentage" class="active">Procent (%)</button>
-          <button type="button" data-type="fixed">Fast belopp</button>
-          <button type="button" data-type="campaign-price">Kampanjpris per produkt</button>
-          <button type="button" data-type="2-for-1">Ta 2 betala för 1</button>
-          <button type="button" data-type="3-for-2">3-för-2</button>
-          <button type="button" data-type="4-for-2">Ta 4 betala för 2</button>
-          <button type="button" data-type="5-for-3">Ta 5 betala för 3</button>
-          <button type="button" data-type="x-for-n">Anpassad X för N</button>
-          <button type="button" data-type="second-half">2:a till halvpris</button>
-        </div>
-        
-        <div class="discount-inputs" id="discountInputs">
-          <!-- Inputs kommer att genereras dynamiskt baserat på vald typ -->
-        </div>
-        
-        <div class="discount-preview" id="discountPreview">
-          <div class="preview-title">Förhandsvisning</div>
-          <div class="preview-details">Välj rabatttyp och fyll i värden för att se resultatet</div>
-        </div>
+      <div class="kbd">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button id="pinClear">C</button><button data-k="0">0</button><button id="pinOk">OK</button>
       </div>
-      <div class="modal-actions">
-        <button id="discountCancelBtn">Avbryt</button>
-        <button class="primary" id="discountApplyBtn">Tillämpa rabatt</button>
-      </div>
+      <div class="hint">Du blir automatiskt utloggad efter inaktivitet.</div>
     </div>
   </div>
 
-  <!-- Snabbknappverktyg modal -->
-  <div class="modal-backdrop" id="quickToolBackdrop" aria-hidden="true"></div>
-  <div class="modal quick-tool-modal" id="quickToolModal" role="dialog" aria-modal="true" aria-labelledby="quickToolTitle" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3 id="quickToolTitle" style="margin:0;font-size:18px;">Snabbknappverktyg</h3>
-        <button id="quickToolCloseBtn" title="Stäng">Stäng</button>
-      </div>
-      <div class="modal-body">
-        <div class="quick-tool-type">
-          <button type="button" data-type="simple" class="active">Enkel snabbknapp</button>
-          <button type="button" data-type="with-price">Med pris</button>
-          <button type="button" data-type="with-category">Med kategori</button>
-          <button type="button" data-type="complete">Komplett</button>
+  <!-- Modal: skapa/redigera snabbknapp -->
+  <div class="modal" id="chipModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="chipTitle">
+      <h3 id="chipTitle">Ny snabbknapp</h3>
+      <div class="grid">
+        <div class="full">
+          <label>Kategori (t.ex. “Hyra” eller “Eon”)</label>
+          <input id="mLabel" type="text" placeholder="Kategori" />
         </div>
-        
-        <div class="quick-tool-inputs" id="quickToolInputs">
-          <!-- Inputs kommer att genereras dynamiskt baserat på vald typ -->
+        <div>
+          <label>Belopp (kr)</label>
+          <input id="mAmount" type="number" inputmode="decimal" placeholder="0" />
         </div>
-        
-        <div class="quick-tool-preview" id="quickToolPreview">
-          <div class="preview-title">Förhandsvisning</div>
-          <div class="preview-details">Välj typ och fyll i värden för att se resultatet</div>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button id="quickToolCancelBtn">Avbryt</button>
-        <button class="primary" id="quickToolApplyBtn">🚀 Skapa & Lägg till snabbknapp</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Sektionsverktyg modal -->
-  <div class="modal-backdrop" id="sectionsBackdrop" aria-hidden="true"></div>
-  <div class="modal" id="sectionsModal" role="dialog" aria-modal="true" aria-labelledby="sectionsTitle" aria-hidden="true">
-    <div class="modal-card" style="width:min(92vw,700px);">
-      <div class="modal-head">
-        <h3 id="sectionsTitle" style="margin:0;font-size:18px;">Hantera Sektioner</h3>
-        <button id="sectionsCloseBtn" title="Stäng">Stäng</button>
-      </div>
-      <div class="modal-body">
-        <div style="display:flex; gap:8px; margin-bottom:16px;">
-          <input type="text" id="newSectionName" placeholder="Ny sektion (t.ex. Frukost)" style="flex:1;">
-          <button id="addSectionBtn" class="primary">Lägg till sektion</button>
-        </div>
-        <div id="sectionsList">
-          <!-- Sektioner kommer att genereras dynamiskt -->
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button id="sectionsCancelBtn">Stäng</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Glasig vaktskärm -->
-  <div class="gate hidden" id="gate">
-    <div class="panel">
-      <h1>Varukorgen</h1>
-      <form id="pinForm" autocomplete="off">
-        <div class="pinbox">
-          <input id="pin" inputmode="numeric" type="tel" maxlength="4" placeholder="••••" aria-label="PIN-kod" />
-        </div>
-        <div class="kbd">
-          <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
-          <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
-          <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
-          <button type="button" id="clearPin">C</button><button type="button" data-k="0">0</button><button type="submit" id="okPin">OK</button>
-        </div>
-      </form>
-      <div class="row"><span class="hint">Säker session stängs efter 60 min inaktivitet</span></div>
-    </div>
-  </div>
-
-  <!-- NY: datalist för kategoriminnet (förslagsmeny) -->
-  <datalist id="catMemList"></datalist>
-
-<script>
-(function(){
-  const CLOUD = {
-    endpoint: 'https://script.google.com/macros/s/AKfycbxG3zENX_dIBGbn1zzNWJo9UnZikx-TofN7VjqaYmkQv0ghaPXJ_xB5jhd_3WQOsQ_R/exec',
-    secret: ''
-  };
-  function cloudKey(){ const u = new URL(location.href); return (u.searchParams.get('key')||'').trim(); }
-  function ensureKey(){ if (CLOUD.endpoint && !cloudKey()){ const k=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2,10)); const url=new URL(location.href); url.searchParams.set('key',k); history.replaceState(null,'',url);} }
-  function cloudEnabled(){ return !!CLOUD.endpoint && !!cloudKey(); }
-
-  const tbody = document.getElementById('tbody');
-  const addRowBtn = document.getElementById('addRowBtn');
-  const shareBtn = document.getElementById('shareBtn');
-  const copyBtn = document.getElementById('copyBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const resetMemBtn = document.getElementById('resetMemBtn'); // NY
-  const clearChecksBtn = document.getElementById('clearChecksBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const chipsWrap = document.getElementById('chips');
-  const addChipBtn = document.getElementById('addChipBtn');
-
-  const totalIncomeEl=document.getElementById('totalIncome'), totalExpenseEl=document.getElementById('totalExpense'), balanceEl=document.getElementById('balance');
-  const salaryInput=document.getElementById('salaryInput'), salaryLeftEl=document.getElementById('salaryLeft'), salaryDisplayEl=document.getElementById('salaryDisplay'), bufferEl=document.getElementById('buffer');
-  const cartCountEl=document.getElementById('cartCount'), cartFab=document.getElementById('cartFab');
-  const catMemList = document.getElementById('catMemList');
-
-  const fmtSEK0 = n => new Intl.NumberFormat('sv-SE', { style:'currency', currency:'SEK', maximumFractionDigits:0 }).format(Math.round(n||0));
-
-  let rows = []; let salary = 0;
-  let currentWeek = '1'; // Aktuell vecka
-  function debounce(fn,wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
-  let isLoadingFromCloud=false; const cloudSaveDebounced = debounce(cloudSave,700);
-
-  /* ===== Veckosystem ===== */
-  function getWeekDataKey(week) { return `cart_week_${week}`; }
-  function getWeekSalaryKey(week) { return `cart_salary_${week}`; }
-  
-  function saveWeekData(week, data) {
-    try {
-      localStorage.setItem(getWeekDataKey(week), JSON.stringify(data));
-    } catch (_) {}
-  }
-  
-  function loadWeekData(week) {
-    try {
-      const data = JSON.parse(localStorage.getItem(getWeekDataKey(week)) || '[]');
-      return Array.isArray(data) ? data : [];
-    } catch (_) {
-      return [];
-    }
-  }
-  
-  function saveWeekSalary(week, salary) {
-    try {
-      localStorage.setItem(getWeekSalaryKey(week), JSON.stringify(salary));
-    } catch (_) {}
-  }
-  
-  function loadWeekSalary(week) {
-    try {
-      return Number(JSON.parse(localStorage.getItem(getWeekSalaryKey(week)) || '0'));
-    } catch (_) {
-      return 0;
-    }
-  }
-  
-  function switchToWeek(week) {
-    // Spara aktuell vecka
-    saveWeekData(currentWeek, rows);
-    saveWeekSalary(currentWeek, salary);
-    
-    // Växla till ny vecka
-    currentWeek = week;
-    rows = loadWeekData(week);
-    salary = loadWeekSalary(week);
-    
-    // Uppdatera UI
-    salaryInput.value = salary || '';
-    render();
-    updateTotals();
-    
-    // Uppdatera veckoväljare
-    document.querySelectorAll('.week-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.week === week);
-      if (btn.dataset.week === week) {
-        btn.style.background = 'var(--accent)';
-        btn.style.color = 'white';
-      } else {
-        btn.style.background = '';
-        btn.style.color = '';
-      }
-    });
-  }
-
-  /* ===== Mörkt läge ===== */
-  function toggleDarkMode() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-  }
-
-  function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-  }
-
-  /* ===== Kategori-minne ===== */
-  const CATMEM_KEY = 'cart_category_memory';
-  function loadCatMem(){
-    try{ const arr=JSON.parse(localStorage.getItem(CATMEM_KEY)||'[]'); return Array.isArray(arr)?arr.filter(Boolean):[]; }catch(_){ return []; }
-  }
-  function saveCatMem(list){
-    try{ localStorage.setItem(CATMEM_KEY, JSON.stringify(list.slice(0,200))); }catch(_){}
-    renderCatMemList();
-  }
-  function rememberCategory(val){
-    const v=(val||'').trim();
-    if(!v) return;
-    const list=loadCatMem();
-    const exists=list.findIndex(x=>String(x).toLowerCase()===v.toLowerCase());
-    if(exists>-1){ // flytta upp
-      list.splice(exists,1);
-      list.unshift(v);
-    } else {
-      list.unshift(v);
-    }
-    saveCatMem(list);
-  }
-  function renderCatMemList(){
-    const list=loadCatMem();
-    catMemList.innerHTML = list.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
-  }
-
-  /* ====== Moln Save/Load ====== */
-  function payload(){ return { rows, salary:Number(salary)||0, updatedAt:Date.now() }; }
-  async function cloudSave(){ if(!cloudEnabled()||isLoadingFromCloud) return; try{ const form=new URLSearchParams(); form.set('op','save'); form.set('key',cloudKey()); form.set('secret',CLOUD.secret||''); form.set('data',JSON.stringify(payload())); const res=await fetch(CLOUD.endpoint,{method:'POST',body:form}); await res.text(); }catch(e){ console.warn('Molnsave fel',e); } }
-  async function cloudLoad(){
-    if(!cloudEnabled()) return; isLoadingFromCloud=true;
-    try{
-      const form=new URLSearchParams(); form.set('op','load'); form.set('key',cloudKey()); form.set('secret',CLOUD.secret||'');
-      const res=await fetch(CLOUD.endpoint,{method:'POST',body:form}); const text=await res.text(); let json; try{ json=JSON.parse(text); }catch(_){}
-      const data=json&&(json.data||json);
-      if(data && Array.isArray(data.rows)){
-        rows=data.rows.map(r=>({category:r.category||'', qty:Number(r.qty??1)||1, unit:r.unit||'st', unitPrice:Number(r.unitPrice??0)||0, unitPriceOrd:Number(r.unitPriceOrd??0)||0, amount:Number(r.amount)||0, type:r.type==='Varukampanj'?'Varukampanj':'Butiksvara', pay:(typeof r.pay==='string')?r.pay:'', note:r.note||'', done:!!r.done}));
-        rows.forEach((_,i)=>recalcRow(i,true));
-      }
-      if(typeof data?.salary!=='undefined'){ salary=Number(data.salary)||0; salaryInput.value=salary||''; }
-    }catch(e){ console.warn('Molnload fel',e);
-    }finally{ render(); updateTotals(); setTimeout(()=>{isLoadingFromCloud=false;},0); }
-  }
-
-  /* ====== Snabbknappar ====== */
-  function loadChips(){
-    const list=JSON.parse(localStorage.getItem('cart_quick_items')||'[]');
-    const sections = loadSections();
-    
-    // Rensa befintliga sektioner
-    chipsWrap.innerHTML = '';
-    
-    // Gruppera snabbknappar per sektion
-    const chipsBySection = {};
-    list.forEach((c, idx) => {
-      const section = c.section || 'Övrigt';
-      if (!chipsBySection[section]) {
-        chipsBySection[section] = [];
-      }
-      chipsBySection[section].push({...c, originalIndex: idx});
-    });
-    
-    // Visa snabbknappar utan sektion först (ovanför sektionerna) - alltid
-    const unsortedDiv = document.createElement('div');
-    unsortedDiv.style.cssText = 'margin-bottom: 16px; width: 100%; display: block;';
-    
-    if (chipsBySection['Övrigt'] && chipsBySection['Övrigt'].length > 0) {
-      unsortedDiv.innerHTML = '<div style="font-size: 14px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px;">Osorterade snabbknappar:</div>';
-      
-      chipsBySection['Övrigt'].forEach(chip => {
-        const el = document.createElement('div');
-        el.className = 'chip';
-        el.draggable = true;
-        el.innerHTML = `<span>${escapeHtml(chip.label)}</span><span class="edit" title="Redigera" data-i="${chip.originalIndex}">✏️</span><span class="x" title="Ta bort" data-i="${chip.originalIndex}">×</span>`;
-        el.addEventListener('click', (ev) => { if(ev.target.classList.contains('x') || ev.target.classList.contains('edit')) return; addRowFromChip(chip); });
-        el.querySelector('.x').addEventListener('click', (ev) => { ev.stopPropagation(); const arr=JSON.parse(localStorage.getItem('cart_quick_items')||'[]'); arr.splice(chip.originalIndex,1); localStorage.setItem('cart_quick_items',JSON.stringify(arr)); loadChips(); });
-        el.querySelector('.edit').addEventListener('click', (ev) => { ev.stopPropagation(); editQuickChip(chip.originalIndex, chip); });
-        unsortedDiv.appendChild(el);
-      });
-    } else {
-      // Visa meddelande även om det inte finns några osorterade snabbknappar
-      unsortedDiv.innerHTML = '<div style="font-size: 14px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px;">Osorterade snabbknappar:</div><div style="color:#999; font-style:italic; padding:8px; text-align:center;">Inga osorterade snabbknappar ännu</div>';
-    }
-    
-    chipsWrap.appendChild(unsortedDiv);
-    
-    // Skapa sektioner (visa även tomma sektioner) - efter osorterade snabbknappar
-    sections.forEach(section => {
-      const sectionChips = chipsBySection[section] || [];
-      createSection(section, sectionChips);
-    });
-    
-  }
-  
-  function createSection(sectionName, chips) {
-    const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'section-item';
-    sectionDiv.style.cssText = 'margin-bottom: 16px;';
-    
-    const headerDiv = document.createElement('div');
-    headerDiv.className = 'section-header';
-    headerDiv.innerHTML = `
-      <h3>${escapeHtml(sectionName)}</h3>
-      <div class="section-actions">
-        <button onclick="openSectionsModal()" title="Hantera sektioner">Hantera</button>
-        <button onclick="deleteSection('${sectionName.replace(/'/g, "\\'")}')" title="Ta bort sektion" style="background:#ffe5e6; border-color:#f3b4b8; color:#cc1f1f;">Ta bort</button>
-      </div>
-    `;
-    
-    const chipsDiv = document.createElement('div');
-    chipsDiv.className = 'section-chips';
-    
-    if (chips.length > 0) {
-      chips.forEach(chip => {
-        const el = document.createElement('div');
-        el.className = 'chip';
-        el.draggable = true;
-        el.innerHTML = `<span>${escapeHtml(chip.label)}</span><span class="edit" title="Redigera" data-i="${chip.originalIndex}">✏️</span><span class="x" title="Ta bort" data-i="${chip.originalIndex}">×</span>`;
-        el.addEventListener('click', (ev) => { if(ev.target.classList.contains('x') || ev.target.classList.contains('edit')) return; addRowFromChip(chip); });
-        el.querySelector('.x').addEventListener('click', (ev) => { ev.stopPropagation(); const arr=JSON.parse(localStorage.getItem('cart_quick_items')||'[]'); arr.splice(chip.originalIndex,1); localStorage.setItem('cart_quick_items',JSON.stringify(arr)); loadChips(); });
-        el.querySelector('.edit').addEventListener('click', (ev) => { ev.stopPropagation(); editQuickChip(chip.originalIndex, chip); });
-        chipsDiv.appendChild(el);
-      });
-    } else {
-      // Visa meddelande för tomma sektioner
-      const emptyMsg = document.createElement('div');
-      emptyMsg.style.cssText = 'color:#999; font-style:italic; padding:8px; text-align:center;';
-      emptyMsg.textContent = 'Inga snabbknappar ännu - skapa en snabbknapp och välj denna sektion';
-      chipsDiv.appendChild(emptyMsg);
-    }
-    
-    sectionDiv.appendChild(headerDiv);
-    sectionDiv.appendChild(chipsDiv);
-    chipsWrap.insertBefore(sectionDiv, chipsWrap.querySelector('#addChipBtn'));
-  }
-  function addRowFromChip(c){
-    const qty = Number(c.qty) || 1;
-    const price = Number(c.price) || 0;
-    const category = c.category || c.label || '';
-    
-    rows.push({ 
-      category: category, 
-      qty: qty, 
-      unit:'st', 
-      unitPrice: price, 
-      unitPriceOrd: 0, 
-      amount: price * qty, 
-      type:'Butiksvara', 
-      pay:'Kort', 
-      note:'', 
-      done:false 
-    });
-    rememberCategory(category); // NY: minnesinlärning även via snabbknapp
-    const i=rows.length-1; recalcRow(i,true); render(); updateTotals();
-  }
-  addChipBtn.addEventListener('click',()=>{
-    openQuickToolModal();
-  });
-
-  /* ====== INIT ====== */
-  function init(){
-    renderCatMemList(); // NY
-
-    const rawSalary=localStorage.getItem('cart_salary')||'0';
-    salary=Number(rawSalary)||0;
-    salaryInput.value=salary||'';
-    salaryInput.addEventListener('input', ()=>{
-      salary=Number(salaryInput.value)||0;
-      localStorage.setItem('cart_salary', String(salary));
-      updateTotals();
-    });
-
-    try{
-      const stored=JSON.parse(localStorage.getItem('cart_rows')||'[]');
-      if(Array.isArray(stored)) rows=stored.map(r=>({category:r.category||'', qty:Number(r.qty??1)||1, unit:r.unit||'st', unitPrice:Number(r.unitPrice??0)||0, unitPriceOrd:Number(r.unitPriceOrd??0)||0, amount:Number(r.amount)||0, type:r.type==='Varukampanj'?'Varukampanj':'Butiksvara', pay:(typeof r.pay==='string')?r.pay:'', note:r.note||'', done:!!r.done}));
-    }catch(_){}
-
-    ensureKey();
-    initTheme();
-    render(); updateTotals();
-    setupReceiptModal();
-    loadChips();
-    secureGate.init();
-
-    addRowBtn.addEventListener('click', addEmptyRow);
-
-    // Veckoväljare event listeners
-    document.querySelectorAll('.week-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const week = btn.dataset.week;
-        switchToWeek(week);
-      });
-    });
-
-    // Mörkt läge event listener
-    const darkModeBtn = document.getElementById('darkModeBtn');
-    if (darkModeBtn) {
-      darkModeBtn.addEventListener('click', toggleDarkMode);
-    }
-
-    // Mobil hamburgermeny
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-    
-    if (mobileMenuBtn) {
-      mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('show');
-        mobileMenuOverlay.classList.toggle('show');
-      });
-    }
-
-    if (mobileMenuOverlay) {
-      mobileMenuOverlay.addEventListener('click', () => {
-        mobileMenu.classList.remove('show');
-        mobileMenuOverlay.classList.remove('show');
-      });
-    }
-
-    // Mobil meny knappar - koppla till samma funktioner som desktop
-    const mobileButtons = [
-      { mobile: 'mobileShareBtn', desktop: 'shareBtn' },
-      { mobile: 'mobileCopyBtn', desktop: 'copyBtn' },
-      { mobile: 'mobileLogoutBtn', desktop: 'logoutBtn' },
-      { mobile: 'mobileResetBtn', desktop: 'resetBtn' },
-      { mobile: 'mobileResetMemBtn', desktop: 'resetMemBtn' },
-      { mobile: 'mobileDeleteAllBtn', desktop: 'deleteAllBtn' }
-    ];
-
-    mobileButtons.forEach(({ mobile, desktop }) => {
-      const mobileBtn = document.getElementById(mobile);
-      const desktopBtn = document.getElementById(desktop);
-      if (mobileBtn && desktopBtn) {
-        mobileBtn.addEventListener('click', () => {
-          desktopBtn.click();
-          mobileMenu.classList.remove('show');
-          mobileMenuOverlay.classList.remove('show');
-        });
-      }
-    });
-
-    cloudLoad();
-
-    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') cloudSave(); });
-
-    ['click','keydown','pointerdown','touchstart'].forEach(ev=>document.addEventListener(ev, secureGate.bump));
-    document.addEventListener('visibilitychange', secureGate.bump);
-
-    // NY: rensa bara kategori-minnet
-    resetMemBtn.addEventListener('click', ()=>{
-      if(!confirm('Rensa sparade kategorier (minnet)? Detta påverkar inte varor eller budget.')) return;
-      localStorage.removeItem(CATMEM_KEY);
-      renderCatMemList();
-      alert('Kategori-minnet är rensat.');
-    });
-  }
-
-  // Lägg till tom rad
-  function addEmptyRow(){
-    rows.push({ category:'', qty:1, unit:'st', unitPrice:0, unitPriceOrd:0, amount:0, type:'Butiksvara', pay:'Kort', note:'', done:false });
-    const i=rows.length-1;
-    recalcRow(i,true);
-    render(); updateTotals();
-    setTimeout(()=>{
-      const lastInput=document.querySelector('#tbody tr:last-child td.category-col input');
-      if(lastInput){ lastInput.setAttribute('list','catMemList'); lastInput.focus({preventScroll:false}); lastInput.scrollIntoView({block:'center',behavior:'smooth'}); }
-    }, 0);
-  }
-
-  /* ====== Render & events ====== */
-  function render(){
-    tbody.innerHTML='';
-    if(rows.length===0){
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td colspan="11" class="empty-cell"><div class="empty-row">Inga rader ännu — klicka <strong>+ Lägg till vara</strong> eller använd en snabbknapp.</div></td>`;
-      tbody.appendChild(tr);
-      updateTotals(); save(); return;
-    }
-    rows.forEach((r,i)=>{
-      if(r.type==='Utgift') r.type='Butiksvara';
-      if(r.type==='Inkomst') r.type='Varukampanj';
-      const tr=document.createElement('tr'); tr.dataset.index=i;
-      if(r.done) tr.classList.add('done');
-
-      tr.innerHTML = `
-        <td>
-          <label class="checkcell" title="Markera klar">
-            <input type="checkbox" data-i="${i}" data-col="done" ${r.done?'checked':''} aria-label="Markera klar">
-            <span class="box" aria-hidden="true"></span>
-          </label>
-        </td>
-        <td class="category-col">
-          <input type="text" data-i="${i}" data-col="category" value="${escapeHtml(r.category)}" placeholder="T.ex. Ägg" list="catMemList">
-        </td>
-        <td><input type="number" data-i="${i}" data-col="qty" value="${r.qty}" min="0" step="1" inputmode="numeric"></td>
-        <td>
-          <select data-i="${i}" data-col="unit">
-            <option value="st" ${r.unit==='st'?'selected':''}>st</option>
-            <option value="kg" ${r.unit==='kg'?'selected':''}>kg</option>
+        <div>
+          <label>Typ</label>
+          <select id="mType">
+            <option>Utgift</option>
+            <option>Inkomst</option>
           </select>
-        </td>
-        <td><input type="number" data-i="${i}" data-col="unitPrice" value="${r.unitPrice}" step="0.01" inputmode="decimal" placeholder="0.00"></td>
-        <td><input type="number" data-i="${i}" data-col="unitPriceOrd" value="${r.unitPriceOrd||0}" step="0.01" inputmode="decimal" placeholder="0.00"></td>
-        <td class="right"><input type="number" data-i="${i}" data-col="amount" value="${Math.round(r.amount)}" readonly></td>
-        <td class="type-col">
-          <select data-i="${i}" data-col="type">
-            <option ${r.type==='Butiksvara'?'selected':''}>Butiksvara</option>
-            <option ${r.type==='Varukampanj'?'selected':''}>Varukampanj</option>
+        </div>
+        <div>
+          <label>Betalsätt</label>
+          <select id="mPay">
+            <option value="">-</option>
+            <option>Autogiro</option>
+            <option>E-faktura</option>
+            <option>Pappersfaktura</option>
+            <option>Annat</option>
           </select>
-        </td>
-        <td class="pay-col">
-          <select data-i="${i}" data-col="pay">
-            <option value="" ${(!r.pay||r.pay==='')?'selected':''}>-</option>
-            <option value="Kort" ${r.pay==='Kort'?'selected':''}>Kort</option>
-            <option value="Mastercard" ${r.pay==='Mastercard'?'selected':''}>Mastercard</option>
-            <option value="Visa" ${r.pay==='Visa'?'selected':''}>Visa</option>
-            <option value="Swish" ${r.pay==='Swish'?'selected':''}>Swish</option>
-            <option value="Klarna" ${r.pay==='Klarna'?'selected':''}>Klarna</option>
-            <option value="Kontant" ${r.pay==='Kontant'?'selected':''}>Kontant</option>
-            <option value="Faktura" ${r.pay==='Faktura'?'selected':''}>Faktura</option>
-          </select>
-        </td>
-        <td class="notes-col"><input type="text" data-i="${i}" data-col="note" value="${escapeHtml(r.note||'')}" placeholder="Anteckningar (valfritt)"></td>
-        <td class="row-actions">
-          <button data-action="rabatt" data-i="${i}" title="Lägg/ändra rabatt">Rabatt</button>
-          <button data-action="up" data-i="${i}" title="Flytta upp">↑</button>
-          <button data-action="down" data-i="${i}" title="Flytta ner">↓</button>
-          <button data-action="neg" data-i="${i}" title="Växla ±">±</button>
-          <button data-action="del" data-i="${i}" title="Ta bort" style="background:#ffe5e6">Ta bort</button>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-    attachEvents(); updateTotals(); save();
-  }
+        </div>
+        <div>
+          <label>Sektion</label>
+          <select id="mSection"></select>
+        </div>
+        <div class="full">
+          <div class="row">
+            <label style="margin:0">Anteckningar</label>
+            <label style="margin-left:auto"><input id="mMirror" type="checkbox" /> Använd betalsätt som anteckning</label>
+          </div>
+          <textarea id="mNote" placeholder="Valfritt: t.ex. kundnummer, månad, etc."></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="mCancel">Avbryt</button>
+        <button class="primary" id="mSave">Spara</button>
+      </div>
+    </div>
+  </div>
 
-  function attachEvents(){
-    tbody.querySelectorAll('input[data-col], select[data-col]').forEach(el=>{
-      const handler=()=>{
-        const i=+el.dataset.i, col=el.dataset.col;
-        if(!rows[i]) return;
-        if(col==='done'){ rows[i].done=!!el.checked; el.closest('tr')?.classList.toggle('done', rows[i].done); save(); return; }
-
-        if(col==='qty'||col==='unitPrice'||col==='unitPriceOrd'||col==='unit'){
-          if(col==='qty') rows[i].qty=Math.max(0, Math.round(Number(el.value)||0));
-          else if(col==='unit') rows[i].unit=el.value;
-          else rows[i][col]=Number(el.value)||0;
-          recalcRow(i);
-        } else if(col==='category' || col==='note' || col==='pay' || col==='type'){
-          rows[i][col]=el.value;
-          if(col==='type') recalcRow(i);
-        }
-        updateTotals(); save();
-      };
-      el.addEventListener('input', handler);
-      el.addEventListener('change', handler);
-
-      // NY: lär in kategori när man lämnar fältet (eller väljer förslag)
-      if(el.dataset.col === 'category'){
-        el.addEventListener('blur', ()=>{ rememberCategory(el.value); });
-      }
-
-      if(el.dataset.col==='unitPrice'||el.dataset.col==='unitPriceOrd'){
-        el.onfocus = ()=>{ if(el.value==='0' || el.value==='') el.value=''; };
-        el.onblur  = ()=>{ if(el.value==='' || isNaN(Number(el.value))){ el.value='0'; handler(); } };
-      }
-      if(el.dataset.col==='qty'){
-        el.onblur  = ()=>{ if(el.value==='' || isNaN(Number(el.value))){ el.value='1'; handler(); } };
-      }
-    });
-
-    // Radknappar
-    tbody.querySelectorAll('button[data-action]').forEach(btn=>{
-      btn.onclick=()=>{
-        const i=+btn.dataset.i, act=btn.dataset.action;
-        if(act==='del'){ rows.splice(i,1); render(); }
-        else if(act==='neg'){ rows[i].amount=-Math.abs(rows[i].amount||0); rows[i].type=(rows[i].amount<0?'Varukampanj':'Butiksvara'); render(); }
-        else if(act==='up'){ if(i>0) moveRow(i,i-1); }
-        else if(act==='down'){ if(i<rows.length-1) moveRow(i,i+1); }
-        else if(act==='rabatt'){ promptDiscount(i); }
-      };
-    });
-  }
-
-  function moveRow(from,to){ if(from<0||to<0||from>=rows.length||to>=rows.length) return; const item=rows.splice(from,1)[0]; rows.splice(to,0,item); render(); }
-
-  /* ===== Rabattlogik & beräkning ===== */
-  function recalcRow(i, silent=false){
-    const r=rows[i]; if(!r) return;
-    const qty=Math.max(0, Number(r.qty)||0);
-    const now=Number(r.unitPrice)||0;
-    const ord=Number(r.unitPriceOrd)||0;
-    r.amount=Math.round(qty * now);
-    const discount=Math.max(0, Math.round((ord - now) * qty));
-    ensureDiscountRowFor(i, discount, true);
-
-    if(!silent){
-      const amountInput=tbody.querySelector(`input[data-col="amount"][data-i="${i}"]`);
-      if(amountInput) amountInput.value=String(r.amount);
-    }
-  }
-  function promptDiscount(i){
-    openDiscountModal(i);
-  }
-  function findDiscountRowIndex(i){
-    const base=rows[i]; if(!base) return -1;
-    const j=i+1, r=rows[j];
-    if(!r || r.type!=='Varukampanj') return -1;
-    const baseCat=(base.category||'').trim().toLowerCase();
-    const note=(r.note||'').trim().toLowerCase();
-    const cat=(r.category||'').trim().toLowerCase();
-    const looksLinked=(note.startsWith('rabatt på ') && (baseCat ? note.includes(baseCat) : true)) || (cat==='rabatt/kupong');
-    return looksLinked ? j : -1;
-  }
-  function ensureDiscountRowFor(i, amount){
-    const base=rows[i]; if(!base) return;
-    const amt=Math.max(0, Math.round(Number(amount)||0));
-    const label=String(base.category||'').trim();
-    const note=`Rabatt på ${label || 'vara'}`;
-    const j=findDiscountRowIndex(i);
-
-    if(amt<=0){ if(j>-1){ rows.splice(j,1); } return; }
-    if(j>-1){
-      rows[j].amount=amt; rows[j].note=note; rows[j].category='Rabatt/Kupong';
-    } else {
-      rows.splice(i+1,0,{ category:'Rabatt/Kupong', amount:amt, type:'Varukampanj', pay:'Kort', note, qty:1, unit:'st', unitPrice:amt, unitPriceOrd:0, done:false });
-    }
-  }
-
-  /* ------- Summering ------- */
-  function updateTotals(){
-    let sumIncome=0, sumExpense=0;
-    rows.forEach(r=>{
-      const amt=Number(r.amount)||0;
-      if(r.type==='Varukampanj') sumIncome += amt;
-      else sumExpense += amt;
-    });
-
-    totalExpenseEl.textContent = fmtSEK0(sumExpense);
-    totalIncomeEl.textContent  = fmtSEK0(sumIncome);
-
-    const toPay = Math.max(0, Math.round(sumExpense - sumIncome));
-    balanceEl.textContent = fmtSEK0(toPay);
-    salaryDisplayEl.textContent = fmtSEK0(toPay);
-
-    const s=Number(salary)||0;
-    const kvar=Math.round(s - toPay);
-    salaryLeftEl.textContent = fmtSEK0(kvar);
-    bufferEl.textContent     = fmtSEK0(kvar);
-
-    salaryLeftEl.classList.toggle('bad', kvar < 0);
-    salaryLeftEl.classList.toggle('good', kvar >= 0);
-    bufferEl.classList.toggle('bad', kvar < 0);
-    bufferEl.classList.toggle('good', kvar >= 0);
-
-    const itemCount=rows.reduce((acc,r)=> acc + (r.type==='Butiksvara' && (r.category||'').trim()!=='' ? (Number(r.qty)||1) : 0), 0);
-    if(cartCountEl) cartCountEl.textContent = String(itemCount);
-
-    save();
-  }
-
-  /* ------- Helpers ------- */
-  function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-  function save(){ localStorage.setItem('cart_rows', JSON.stringify(rows)); if(cloudEnabled()) cloudSaveDebounced(); }
-
-  /* ------- Reset / Checkar ------- */
-  resetBtn.onclick = ()=>{
-    if(!confirm(`Nollställ bara kategorier för ${currentWeek === 'quick' ? 'Snabbhandla' : 'Vecka ' + currentWeek}? (Snabbknappar och sektioner behålls)`)) return;
-    rows = [];
-    salary = 0;
-    salaryInput.value = '';
-    saveWeekData(currentWeek, []);
-    saveWeekSalary(currentWeek, 0);
-    render(); updateTotals();
-    // INTE loadChips() - behåll snabbknappar och sektioner
-    alert(`Kategorier nollställda för ${currentWeek === 'quick' ? 'Snabbhandla' : 'Vecka ' + currentWeek}. Snabbknappar och sektioner är kvar.`);
-  };
-
-  deleteAllBtn.onclick = ()=>{
-    if(!confirm('Ta bort ALLT? Detta raderar alla varor, snabbknappar, sektioner och kategorier för alla veckor. Detta går inte att ångra!')) return;
-    
-    // Rensa alla veckor
-    for(let week of ['1', '2', '3', '4', 'quick']) {
-      localStorage.removeItem(getWeekDataKey(week));
-      localStorage.removeItem(getWeekSalaryKey(week));
-    }
-    
-    // Rensa snabbknappar och sektioner
-    localStorage.removeItem('cart_quick_items');
-    localStorage.removeItem('cart_sections');
-    localStorage.removeItem('cart_category_memory');
-    
-    // Rensa aktuell vecka
-    rows = [];
-    salary = 0;
-    salaryInput.value = '';
-    
-    render(); updateTotals(); loadChips();
-    alert('Allt har tagits bort!');
-  };
-
-  clearChecksBtn.onclick = ()=>{ rows.forEach(r=> r.done=false); render(); updateTotals(); };
-
-  /* ------- Delning ------- */
-  shareBtn.onclick = copyBtn.onclick = ()=>{
-    const link = location.href;
-    (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject())
-      .then(()=> alert('Länk kopierad.'))
-      .catch(()=> prompt('Kopiera manuellt:', link));
-  };
-
-  /* ======= Kvitto ======= */
-  const receiptModal   = document.getElementById('receiptModal');
-  const receiptBackdrop= document.getElementById('receiptBackdrop');
-  const receiptPreview = document.getElementById('receiptPreview');
-  const receiptEmail   = document.getElementById('receiptEmail');
-  const btnReceiptSend = document.getElementById('receiptSendBtn');
-  const btnReceiptClose= document.getElementById('receiptCloseBtn');
-  const btnReceiptCopy = document.getElementById('receiptCopyBtn');
-  const btnReceiptPrint= document.getElementById('receiptPrintBtn');
-  const btnReceiptPdf  = document.getElementById('receiptPdfBtn');
-
-  function setupReceiptModal(){
-    function openFromFab(){ buildAndShowReceipt(); }
-    cartFab.addEventListener('click', openFromFab);
-    cartFab.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); openFromFab(); } });
-
-    btnReceiptClose.onclick = closeReceipt;
-    receiptBackdrop.onclick = closeReceipt;
-
-    btnReceiptCopy.onclick = async ()=>{
-      try{ await navigator.clipboard.writeText(buildReceiptHtml()); alert('Kvitto (HTML) kopierat.'); }
-      catch(_){ alert('Kunde inte kopiera.'); }
+  <script>
+  (function(){
+    /* ====== KONFIG ====== */
+    const CLOUD = {
+      endpoint: 'https://script.google.com/macros/s/AKfycbzgA6bjMpMr8OF-YTdSHKGkfhBj_JNg0RgBD8gxrFozUMbOT2-dLz4zYq3Wp2ZO7fyz-Q/exec',
+      secret:   'BudgetSecret123'
     };
-    const printNow = ()=>{
-      const html = buildReceiptHtml();
-      const w = window.open('', '_blank', 'noopener');
-      if(!w) return alert('Popup blockerad. Tillåt popups eller prova igen.');
-      w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Kvitto</title>
-        <style>body{font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial;padding:16px}</style>
-      </head><body>${html}</body></html>`);
-      w.document.close(); w.focus(); w.print();
+
+    /* ====== HJÄLPARE ====== */
+    function getKey(){
+      const u = new URL(location.href);
+      let k = (u.searchParams.get('key')||'').trim();
+      if(!k){
+        k = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2,10));
+        u.searchParams.set('key', k);
+        history.replaceState(null,'',u);
+      }
+      return k;
+    }
+    function cloudKey(){ return 'budget_' + getKey(); }
+    const LS_ROWS    = ()=>`budget_rows_v2_${getKey()}`;
+    const LS_SALARY  = ()=>`budget_salary_v2_${getKey()}`;
+    const LS_MEMCAT  = ()=>`budget_cat_memory_v2_${getKey()}`;
+    const LS_QUICK   = ()=>`budget_quick_items_v2_${getKey()}`;      // snabbknappar
+    const LS_SECTS   = ()=>`budget_quick_sections_v1_${getKey()}`;   // sektioner
+
+    function cloudEnabled(){ return !!CLOUD.endpoint && !!cloudKey(); }
+    function debounce(fn, wait){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(null,a),wait); }; }
+    function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    const fmt = new Intl.NumberFormat('sv-SE',{style:'currency',currency:'SEK',maximumFractionDigits:0});
+
+    /* ====== UI REFS ====== */
+    const tbody = document.getElementById('tbody');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const lockBtn = document.getElementById('lockBtn');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+
+    const chipsWrap = document.getElementById('chips');
+    const addChipBtn = document.getElementById('addChipBtn');
+    const sortChipsBtn = document.getElementById('sortChipsBtn');
+    const addSectionBtn = document.getElementById('addSectionBtn');
+    const chipSections = document.getElementById('chipSections');
+
+    const totalIncomeEl   = document.getElementById('totalIncome');
+    const totalExpenseEl  = document.getElementById('totalExpense');
+    const balanceEl       = document.getElementById('balance');
+    const salaryInput     = document.getElementById('salaryInput');
+    const salaryLeftEl    = document.getElementById('salaryLeft');
+    const salaryDisplayEl = document.getElementById('salaryDisplay');
+    const bufferEl        = document.getElementById('buffer');
+
+    const liveLinkInput = document.getElementById('liveLink');
+    const copyLiveLinkBtn = document.getElementById('copyLiveLinkBtn');
+    const cloudInfo = document.getElementById('cloudInfo');
+
+    const clearMemBtn = document.getElementById('clearMemBtn');
+    const categoryMemoryList = document.getElementById('categoryMemory');
+
+    /* Modal */
+    const chipModal = document.getElementById('chipModal');
+    const chipTitle = document.getElementById('chipTitle');
+    const mLabel = document.getElementById('mLabel');
+    const mAmount = document.getElementById('mAmount');
+    const mType = document.getElementById('mType');
+    const mPay = document.getElementById('mPay');
+    const mSection = document.getElementById('mSection');
+    const mNote = document.getElementById('mNote');
+    const mMirror = document.getElementById('mMirror');
+    const mCancel = document.getElementById('mCancel');
+    const mSave = document.getElementById('mSave');
+
+    /* ====== DATA ====== */
+    let rows = [];
+    let salary = 0;
+
+    /* ====== LÅS ====== */
+    const LOCK = { pin:'8987', timeoutMs: 60*60*1000 };
+    const lockEl = document.getElementById('lock');
+    const pinInputs = [ 'pin1','pin2','pin3','pin4' ].map(id=>document.getElementById(id));
+    const pinOk = document.getElementById('pinOk');
+    const pinClear = document.getElementById('pinClear');
+    const lockTsKey = ()=>'budget_lock_ts_' + getKey();
+    function now(){ return Date.now(); }
+    function setUnlockTs(){ localStorage.setItem(lockTsKey(), String(now())); }
+    function getUnlockTs(){ const v=localStorage.getItem(lockTsKey()); return v?Number(v):0; }
+    function needLock(){ const ts = getUnlockTs(); return !ts || (now()-ts) > LOCK.timeoutMs; }
+    function openLock(){ lockEl.classList.add('open'); pinInputs[0].focus(); }
+    function closeLock(){ lockEl.classList.remove('open'); setUnlockTs(); }
+    function tryUnlock(){
+      const val = pinInputs.map(i=>i.value).join('');
+      if(val === LOCK.pin){ closeLock(); pinInputs.forEach(i=>i.value=''); }
+      else { pinInputs.forEach(i=>i.value=''); pinInputs[0].focus(); alert('Fel PIN'); }
+    }
+    pinOk.onclick = tryUnlock;
+    pinClear.onclick = ()=>{ pinInputs.forEach(i=>i.value=''); pinInputs[0].focus(); };
+    lockBtn.onclick = openLock;
+    lockEl.querySelectorAll('[data-k]').forEach(b=> b.addEventListener('click', (e)=>{
+      const k = e.currentTarget.getAttribute('data-k');
+      for(const inp of pinInputs){ if(inp.value===''){ inp.value=k; break; } }
+    }));
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.visibilityState==='hidden') setUnlockTs();
+    });
+    if(needLock()) openLock();
+
+    /* ====== DELNING ====== */
+    function updateShareLink(){ liveLinkInput.value = location.href; }
+    copyLiveLinkBtn.onclick = ()=>{
+      const t = liveLinkInput.value;
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+        .then(()=>alert('Länk kopierad.'))
+        .catch(()=>prompt('Kopiera manuellt:', t));
     };
-    btnReceiptPrint.onclick = printNow;
-    btnReceiptPdf.onclick = printNow;
+    shareBtn.onclick = ()=> copyLiveLinkBtn.click();
+    copyBtn.onclick = ()=> copyLiveLinkBtn.click();
+    updateShareLink();
 
-    btnReceiptSend.onclick = ()=> alert('E-post kan kopplas här (t.ex. via Apps Script).');
-  }
-  function openReceipt(){ receiptModal.classList.add('open'); receiptBackdrop.classList.add('open'); receiptModal.setAttribute('aria-hidden','false'); setTimeout(()=> receiptEmail.focus(), 0); }
-  function closeReceipt(){ receiptModal.classList.remove('open'); receiptBackdrop.classList.remove('open'); receiptModal.setAttribute('aria-hidden','true'); }
-  function buildAndShowReceipt(){
-    const items = rows.filter(r => r.type==='Butiksvara' && (r.category||'').trim()!=='');
-    if(items.length===0){ alert('Lägg till minst en vara först.'); return; }
-    receiptPreview.innerHTML = buildReceiptHtml();
-    document.getElementById('receiptMeta').textContent = new Date().toLocaleString('sv-SE');
-    openReceipt();
-  }
-  function buildReceiptHtml(){
-    const items = rows.filter(r => r.type==='Butiksvara' && (r.category||'').trim()!=='');
-    const promos= rows.filter(r => r.type==='Varukampanj' && (Number(r.amount)||0)>0);
-    const sumItems = items.reduce((a,b)=> a + (Number(b.amount)||0), 0);
-    const sumPromos= promos.reduce((a,b)=> a + (Number(b.amount)||0), 0);
-    const toPay = Math.max(0, Math.round(sumItems - sumPromos));
-    const fmt = n => new Intl.NumberFormat('sv-SE',{style:'currency',currency:'SEK',maximumFractionDigits:0}).format(Math.round(n));
+    /* ====== KATEGORI-MINNE ====== */
+    function loadCategoryMemory(){
+      let arr = []; try{ arr = JSON.parse(localStorage.getItem(LS_MEMCAT())||'[]'); }catch(_){}
+      if(!Array.isArray(arr)) arr = [];
+      categoryMemoryList.innerHTML = arr.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
+      return arr;
+    }
+    function saveCategoryToMemory(s){
+      const label = String(s||'').trim();
+      if(!label) return;
+      const arr = loadCategoryMemory();
+      if(!arr.includes(label)){
+        arr.push(label);
+        localStorage.setItem(LS_MEMCAT(), JSON.stringify(arr));
+        loadCategoryMemory();
+      }
+    }
+    function clearCategoryMemory(){ localStorage.removeItem(LS_MEMCAT()); loadCategoryMemory(); }
+    clearMemBtn.onclick = ()=>{ if(confirm('Rensa endast kategori-minnet? (påverkar inte dina rader)')) clearCategoryMemory(); };
 
-    const rowsHtml = items.map(it=>`
-      <tr>
-        <td>${escapeHtml(it.category)}</td>
-        <td style="text-align:right">${it.qty||1} ${escapeHtml(it.unit||'st')}</td>
-        <td style="text-align:right">${fmt(it.unitPrice||0)}</td>
-        <td style="text-align:right">${fmt(it.amount||0)}</td>
-        <td>${escapeHtml(it.note||'')}</td>
-      </tr>`).join('');
-    const promoHtml = promos.length ? `
-      <tr>
-        <td style="font-weight:700">Kampanjer</td>
-        <td></td><td></td>
-        <td style="text-align:right; color:#1b8f4a; font-weight:700">−${fmt(sumPromos)}</td>
-        <td></td>
-      </tr>` : '';
-    return `
-<div style="max-width:760px;margin:0 auto">
-  <div style="font-weight:900;letter-spacing:.2px;margin:0 0 6px">Varukorgen</div>
-  <table style="width:100%;border-collapse:collapse">
-    <thead>
-      <tr>
-        <th style="text-align:left;border-bottom:1px solid #eee;padding:6px">Vara</th>
-        <th style="text-align:right;border-bottom:1px solid #eee;padding:6px">Antal</th>
-        <th style="text-align:right;border-bottom:1px solid #eee;padding:6px">à-pris</th>
-        <th style="text-align:right;border-bottom:1px solid #eee;padding:6px">Radpris</th>
-        <th style="text-align:left;border-bottom:1px solid #eee;padding:6px">Anteckning</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rowsHtml || `<tr><td colspan="5" style="padding:8px;color:#888">Inga varor</td></tr>`}
-    </tbody>
-    <tfoot>
-      ${promoHtml}
-      <tr>
-        <td colspan="3" style="font-weight:700">Att betala</td>
-        <td style="text-align:right;font-weight:900">${fmt(toPay)}</td>
-        <td></td>
-      </tr>
-    </tfoot>
-  </table>
-</div>`;
-  }
+    /* ====== SEKTIONER ====== */
+    function uid(){ return 'sec_' + Math.random().toString(36).slice(2,9); }
+    function loadSections(){
+      let secs=[]; try{ secs = JSON.parse(localStorage.getItem(LS_SECTS())||'[]'); }catch(_){}
+      if(!Array.isArray(secs)) secs=[];
+      if(secs.length===0){ secs=[{id:'sec_default', name:'Snabbknappar'}]; localStorage.setItem(LS_SECTS(), JSON.stringify(secs)); }
+      return secs;
+    }
+    // SPARA sektioner + trigga moln
+    function saveSections(secs){
+      localStorage.setItem(LS_SECTS(), JSON.stringify(secs));
+      cloudSaveDebounced(); // autospara till moln
+    }
 
-  /* ======== Rabattverktyg ======== */
-  const discountModal = document.getElementById('discountModal');
-  const discountBackdrop = document.getElementById('discountBackdrop');
-  const discountCloseBtn = document.getElementById('discountCloseBtn');
-  const discountCancelBtn = document.getElementById('discountCancelBtn');
-  const discountApplyBtn = document.getElementById('discountApplyBtn');
-  const discountInputs = document.getElementById('discountInputs');
-  const discountPreview = document.getElementById('discountPreview');
-  
-  let currentDiscountRowIndex = -1;
-  let currentDiscountType = 'percentage';
-  
-  function openDiscountModal(rowIndex) {
-    currentDiscountRowIndex = rowIndex;
-    const row = rows[rowIndex];
-    if (!row) return;
-    
-    // Sätt standardvärden baserat på befintlig data
-    currentDiscountType = 'percentage';
-    updateDiscountTypeButtons();
-    updateDiscountInputs();
-    updateDiscountPreview();
-    
-    discountModal.classList.add('open');
-    discountBackdrop.classList.add('open');
-    discountModal.setAttribute('aria-hidden', 'false');
-  }
-  
-  function closeDiscountModal() {
-    discountModal.classList.remove('open');
-    discountBackdrop.classList.remove('open');
-    discountModal.setAttribute('aria-hidden', 'true');
-    currentDiscountRowIndex = -1;
-  }
-  
-  function updateDiscountTypeButtons() {
-    document.querySelectorAll('.discount-type button').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.type === currentDiscountType);
-    });
-  }
-  
-  function updateDiscountInputs() {
-    const row = rows[currentDiscountRowIndex];
-    if (!row) return;
-    
-    let html = '';
-    
-    switch (currentDiscountType) {
-      case 'percentage':
-        html = `
-          <label for="discountPercent">Rabatt i procent (%)</label>
-          <input type="number" id="discountPercent" min="0" max="100" step="0.1" value="0" placeholder="t.ex. 15">
-        `;
-        break;
-        
-      case 'fixed':
-        html = `
-          <label for="discountAmount">Rabatt i kronor (kr)</label>
-          <input type="number" id="discountAmount" min="0" step="0.01" value="0" placeholder="t.ex. 25">
-        `;
-        break;
-        
-      case 'campaign-price':
-        html = `
-          <label for="campaignPrice">Kampanjpris per produkt (kr)</label>
-          <div style="width: 120px;">
-            <input type="number" id="campaignPrice" min="0" step="0.01" value="0" placeholder="t.ex. 20" style="width: 100%;">
-          </div>
-          <div style="padding:8px; background:#f0f8ff; border-radius:6px; color:#666; font-size:13px; margin-top:8px;">
-            <strong>Exempel:</strong> Mjölk kostar 24 kr, men köper du 2+ får du betala 20 kr per styck istället.
-          </div>
-        `;
-        break;
-        
-      case '2-for-1':
-        html = `
-          <div style="padding:12px; background:#f8f9fa; border-radius:8px; color:#666;">
-            <strong>Ta 2 betala för 1:</strong> Köp 2 varor, betala för 1. Automatiskt beräknat baserat på antal i varukorgen.
-          </div>
-        `;
-        break;
-        
-      case '3-for-2':
-        html = `
-          <div style="padding:12px; background:#f8f9fa; border-radius:8px; color:#666;">
-            <strong>3-för-2:</strong> Köp 3 varor, betala för 2. Automatiskt beräknat baserat på antal i varukorgen.
-          </div>
-        `;
-        break;
-        
-      case '4-for-2':
-        html = `
-          <div style="padding:12px; background:#f8f9fa; border-radius:8px; color:#666;">
-            <strong>Ta 4 betala för 2:</strong> Köp 4 varor, betala för 2. Automatiskt beräknat baserat på antal i varukorgen.
-          </div>
-        `;
-        break;
-        
-      case '5-for-3':
-        html = `
-          <div style="padding:12px; background:#f8f9fa; border-radius:8px; color:#666;">
-            <strong>Ta 5 betala för 3:</strong> Köp 5 varor, betala för 3. Automatiskt beräknat baserat på antal i varukorgen.
-          </div>
-        `;
-        break;
-        
-      case 'x-for-n':
-        html = `
-          <label for="discountX">Antal varor (X)</label>
-          <input type="number" id="discountX" min="1" value="3" placeholder="t.ex. 3">
-          <label for="discountN">För priset av (N)</label>
-          <input type="number" id="discountN" min="1" value="2" placeholder="t.ex. 2">
-        `;
-        break;
-        
-      case 'second-half':
-        html = `
-          <div style="padding:12px; background:#f8f9fa; border-radius:8px; color:#666;">
-            <strong>2:a till halvpris:</strong> Andra varan kostar hälften. Automatiskt beräknat baserat på antal i varukorgen.
-          </div>
-        `;
-        break;
+    /* ====== CHIP-MODAL (ny + redigera) ====== */
+    let editingChipAbs = -1; // absolut index i listan, -1 = ny
+    function openChipModal(absIndex){
+      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]');
+      ensureSectionOptions(mSection);
+      editingChipAbs = (typeof absIndex==='number' && absIndex>=0) ? absIndex : -1;
+      if(editingChipAbs >= 0 && list[editingChipAbs]){
+        const c = list[editingChipAbs];
+        chipTitle.textContent = 'Redigera snabbknapp';
+        mLabel.value = c.label || '';
+        mAmount.value = Number(c.amount||0) || '';
+        mType.value = (c.type==='Inkomst'?'Inkomst':'Utgift');
+        mPay.value = c.pay || '';
+        mSection.value = c.sec || 'sec_default';
+        mMirror.checked = false;
+        mNote.value = c.note || '';
+      }else{
+        chipTitle.textContent = 'Ny snabbknapp';
+        mLabel.value=''; mAmount.value=''; mType.value='Utgift'; mPay.value='';
+        mSection.value = 'sec_default';
+        mMirror.checked=false; mNote.value='';
+      }
+      chipModal.classList.add('open');
+      mLabel.focus();
     }
-    
-    discountInputs.innerHTML = html;
-    
-    // Lägg till event listeners för nya inputs
-    discountInputs.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', updateDiscountPreview);
-      input.addEventListener('change', updateDiscountPreview);
-    });
-  }
-  
-  function updateDiscountPreview() {
-    const row = rows[currentDiscountRowIndex];
-    if (!row) return;
-    
-    const qty = Number(row.qty) || 1;
-    const unitPrice = Number(row.unitPrice) || 0;
-    const originalTotal = qty * unitPrice;
-    
-    let discountAmount = 0;
-    let description = '';
-    
-    switch (currentDiscountType) {
-      case 'percentage':
-        const percent = Number(document.getElementById('discountPercent')?.value) || 0;
-        discountAmount = Math.round(originalTotal * percent / 100);
-        description = `${percent}% rabatt`;
-        break;
-        
-      case 'fixed':
-        discountAmount = Math.round(Number(document.getElementById('discountAmount')?.value) || 0);
-        description = `${discountAmount} kr rabatt`;
-        break;
-        
-      case 'campaign-price':
-        const campaignPrice = Number(document.getElementById('campaignPrice')?.value) || 0;
-        if (campaignPrice > 0 && campaignPrice < unitPrice) {
-          const priceDiff = unitPrice - campaignPrice;
-          discountAmount = Math.round(priceDiff * qty);
-          description = `Kampanjpris ${campaignPrice} kr/st (sparar ${priceDiff} kr per styck)`;
-        }
-        break;
-        
-      case '2-for-1':
-        if (qty >= 2) {
-          const sets = Math.floor(qty / 2);
-          const freeItems = sets;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `Ta 2 betala för 1 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case '4-for-2':
-        if (qty >= 4) {
-          const sets = Math.floor(qty / 4);
-          const freeItems = sets * 2;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `Ta 4 betala för 2 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case '5-for-3':
-        if (qty >= 5) {
-          const sets = Math.floor(qty / 5);
-          const freeItems = sets * 2;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `Ta 5 betala för 3 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case 'x-for-n':
-        const x = Number(document.getElementById('discountX')?.value) || 3;
-        const n = Number(document.getElementById('discountN')?.value) || 2;
-        if (qty >= x) {
-          const sets = Math.floor(qty / x);
-          const freeItems = sets * (x - n);
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `${x} för ${n} (${freeItems} gratis)`;
-        }
-        break;
-        
-      case '3-for-2':
-        if (qty >= 3) {
-          const sets = Math.floor(qty / 3);
-          const freeItems = sets;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `3-för-2 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case 'second-half':
-        if (qty >= 2) {
-          const halfPriceItems = Math.floor(qty / 2);
-          discountAmount = Math.round(halfPriceItems * unitPrice / 2);
-          description = `2:a till halvpris (${halfPriceItems} till halvpris)`;
-        }
-        break;
-    }
-    
-    const newTotal = Math.max(0, originalTotal - discountAmount);
-    const savings = originalTotal - newTotal;
-    
-    discountPreview.innerHTML = `
-      <div class="preview-title">Förhandsvisning</div>
-      <div class="preview-details">
-        <div><strong>Originalpris:</strong> ${fmtSEK0(originalTotal)}</div>
-        <div><strong>Rabatt:</strong> ${fmtSEK0(discountAmount)} (${description})</div>
-        <div><strong>Nytt pris:</strong> ${fmtSEK0(newTotal)}</div>
-        <div><strong>Du sparar:</strong> ${fmtSEK0(savings)}</div>
-      </div>
-    `;
-  }
-  
-  function applyDiscount() {
-    const row = rows[currentDiscountRowIndex];
-    if (!row) return;
-    
-    const qty = Number(row.qty) || 1;
-    const unitPrice = Number(row.unitPrice) || 0;
-    const originalTotal = qty * unitPrice;
-    
-    let discountAmount = 0;
-    let description = '';
-    
-    switch (currentDiscountType) {
-      case 'percentage':
-        const percent = Number(document.getElementById('discountPercent')?.value) || 0;
-        discountAmount = Math.round(originalTotal * percent / 100);
-        description = `${percent}% rabatt`;
-        break;
-        
-      case 'fixed':
-        discountAmount = Math.round(Number(document.getElementById('discountAmount')?.value) || 0);
-        description = `${discountAmount} kr rabatt`;
-        break;
-        
-      case 'campaign-price':
-        const campaignPrice = Number(document.getElementById('campaignPrice')?.value) || 0;
-        if (campaignPrice > 0 && campaignPrice < unitPrice) {
-          const priceDiff = unitPrice - campaignPrice;
-          discountAmount = Math.round(priceDiff * qty);
-          description = `Kampanjpris ${campaignPrice} kr/st (sparar ${priceDiff} kr per styck)`;
-        }
-        break;
-        
-      case '2-for-1':
-        if (qty >= 2) {
-          const sets = Math.floor(qty / 2);
-          const freeItems = sets;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `Ta 2 betala för 1 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case '4-for-2':
-        if (qty >= 4) {
-          const sets = Math.floor(qty / 4);
-          const freeItems = sets * 2;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `Ta 4 betala för 2 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case '5-for-3':
-        if (qty >= 5) {
-          const sets = Math.floor(qty / 5);
-          const freeItems = sets * 2;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `Ta 5 betala för 3 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case 'x-for-n':
-        const x = Number(document.getElementById('discountX')?.value) || 3;
-        const n = Number(document.getElementById('discountN')?.value) || 2;
-        if (qty >= x) {
-          const sets = Math.floor(qty / x);
-          const freeItems = sets * (x - n);
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `${x} för ${n} (${freeItems} gratis)`;
-        }
-        break;
-        
-      case '3-for-2':
-        if (qty >= 3) {
-          const sets = Math.floor(qty / 3);
-          const freeItems = sets;
-          discountAmount = Math.round(freeItems * unitPrice);
-          description = `3-för-2 (${freeItems} gratis)`;
-        }
-        break;
-        
-      case 'second-half':
-        if (qty >= 2) {
-          const halfPriceItems = Math.floor(qty / 2);
-          discountAmount = Math.round(halfPriceItems * unitPrice / 2);
-          description = `2:a till halvpris (${halfPriceItems} till halvpris)`;
-        }
-        break;
-    }
-    
-    if (discountAmount > 0) {
-      // Sätt ordinarie pris till nuvarande pris
-      row.unitPriceOrd = unitPrice;
-      // Beräkna nytt pris
-      const newTotal = Math.max(0, originalTotal - discountAmount);
-      row.unitPrice = Math.round(newTotal / qty * 100) / 100; // Avrunda till 2 decimaler
-      
-      // Skapa rabattrad
-      ensureDiscountRowFor(currentDiscountRowIndex, discountAmount);
-    }
-    
-    recalcRow(currentDiscountRowIndex);
-    render();
-    updateTotals();
-    closeDiscountModal();
-  }
-  
-  // Event listeners för rabattverktyget
-  document.querySelectorAll('.discount-type button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentDiscountType = btn.dataset.type;
-      updateDiscountTypeButtons();
-      updateDiscountInputs();
-      updateDiscountPreview();
-    });
-  });
-  
-  discountCloseBtn.addEventListener('click', closeDiscountModal);
-  discountCancelBtn.addEventListener('click', closeDiscountModal);
-  discountBackdrop.addEventListener('click', closeDiscountModal);
-  discountApplyBtn.addEventListener('click', applyDiscount);
+    function closeChipModal(){ chipModal.classList.remove('open'); }
+    document.getElementById('addChipBtn').addEventListener('click', ()=>openChipModal(-1));
+    mCancel.addEventListener('click', closeChipModal);
+    chipModal.addEventListener('click', (e)=>{ if(e.target===chipModal) closeChipModal(); });
+    mMirror.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
+    mPay.addEventListener('change', ()=>{ if(mMirror.checked) mNote.value = mPay.value || ''; });
 
-  /* ======== Snabbknappverktyg ======== */
-  const quickToolModal = document.getElementById('quickToolModal');
-  const quickToolBackdrop = document.getElementById('quickToolBackdrop');
-  const quickToolCloseBtn = document.getElementById('quickToolCloseBtn');
-  const quickToolCancelBtn = document.getElementById('quickToolCancelBtn');
-  const quickToolApplyBtn = document.getElementById('quickToolApplyBtn');
-  const quickToolInputs = document.getElementById('quickToolInputs');
-  const quickToolPreview = document.getElementById('quickToolPreview');
-  
-  let currentQuickToolType = 'simple';
-  let editingChipIndex = -1;
-  
-  function getCategoryOptions() {
-    const categories = loadCatMem();
-    return categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('');
-  }
-  
-  function editQuickChip(index, chipData) {
-    editingChipIndex = index;
-    
-    // Bestäm typ baserat på vilka fält som finns
-    if (chipData.price && chipData.category && chipData.qty) {
-      currentQuickToolType = 'complete';
-    } else if (chipData.price && chipData.category) {
-      currentQuickToolType = 'with-category';
-    } else if (chipData.price) {
-      currentQuickToolType = 'with-price';
-    } else {
-      currentQuickToolType = 'simple';
+    function ensureSectionOptions(selectEl){
+      const secs = loadSections();
+      selectEl.innerHTML = secs.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
     }
-    
-    updateQuickToolTypeButtons();
-    updateQuickToolInputs();
-    
-    // Uppdatera knapptext
-    quickToolApplyBtn.textContent = '🔄 Uppdatera snabbknapp';
-    
-    // Fyll i befintliga värden
-    setTimeout(() => {
-      const labelInput = document.getElementById('quickToolLabel');
-      const priceInput = document.getElementById('quickToolPrice');
-      const categorySelect = document.getElementById('quickToolCategory');
-      const qtyInput = document.getElementById('quickToolQty');
-      
-      if (labelInput) labelInput.value = chipData.label || '';
-      if (priceInput) priceInput.value = chipData.price || 0;
-      if (categorySelect) categorySelect.value = chipData.category || '';
-      if (qtyInput) qtyInput.value = chipData.qty || 1;
-      
-      updateQuickToolPreview();
-    }, 0);
-    
-    quickToolModal.classList.add('open');
-    quickToolBackdrop.classList.add('open');
-    quickToolModal.setAttribute('aria-hidden', 'false');
-  }
-  
-  function openQuickToolModal() {
-    editingChipIndex = -1;
-    currentQuickToolType = 'simple';
-    updateQuickToolTypeButtons();
-    updateQuickToolInputs();
-    updateQuickToolPreview();
-    
-    // Återställ knapptext
-    quickToolApplyBtn.textContent = '🚀 Skapa & Lägg till snabbknapp';
-    
-    quickToolModal.classList.add('open');
-    quickToolBackdrop.classList.add('open');
-    quickToolModal.setAttribute('aria-hidden', 'false');
-  }
-  
-  function closeQuickToolModal() {
-    quickToolModal.classList.remove('open');
-    quickToolBackdrop.classList.remove('open');
-    quickToolModal.setAttribute('aria-hidden', 'true');
-  }
-  
-  function updateQuickToolTypeButtons() {
-    document.querySelectorAll('.quick-tool-type button').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.type === currentQuickToolType);
-    });
-  }
-  
-  function updateQuickToolInputs() {
-    let html = '';
-    
-    switch (currentQuickToolType) {
-      case 'simple':
-        html = `
-          <label for="quickToolLabel">Namn på snabbknapp</label>
-          <input type="text" id="quickToolLabel" placeholder="t.ex. Mjölk" value="">
-        `;
-        break;
-        
-      case 'with-price':
-        html = `
-          <label for="quickToolLabel">Namn på snabbknapp</label>
-          <input type="text" id="quickToolLabel" placeholder="t.ex. Mjölk" value="">
-          <label for="quickToolPrice">Pris (kr)</label>
-          <input type="number" id="quickToolPrice" min="0" step="0.01" placeholder="t.ex. 18.90" value="0">
-        `;
-        break;
-        
-      case 'with-category':
-        html = `
-          <label for="quickToolLabel">Namn på snabbknapp</label>
-          <input type="text" id="quickToolLabel" placeholder="t.ex. Mjölk" value="">
-          <label for="quickToolCategory">Kategori</label>
-          <select id="quickToolCategory">
-            <option value="">Välj kategori...</option>
-            ${getCategoryOptions()}
-          </select>
-        `;
-        break;
-        
-      case 'complete':
-        html = `
-          <label for="quickToolLabel">Namn på snabbknapp</label>
-          <input type="text" id="quickToolLabel" placeholder="t.ex. Mjölk" value="">
-          <label for="quickToolPrice">Pris (kr)</label>
-          <input type="number" id="quickToolPrice" min="0" step="0.01" placeholder="t.ex. 18.90" value="0">
-          <label for="quickToolCategory">Kategori</label>
-          <select id="quickToolCategory">
-            <option value="">Välj kategori...</option>
-            ${getCategoryOptions()}
-          </select>
-          <label for="quickToolSection">Sektion</label>
-          <select id="quickToolSection">
-            <option value="">Välj sektion...</option>
-            ${getSectionOptions()}
-          </select>
-          <label for="quickToolQty">Antal</label>
-          <input type="number" id="quickToolQty" min="1" step="1" placeholder="t.ex. 2" value="1">
-        `;
-        break;
-    }
-    
-    quickToolInputs.innerHTML = html;
-    
-    // Lägg till event listeners för nya inputs
-    quickToolInputs.querySelectorAll('input, select').forEach(input => {
-      input.addEventListener('input', updateQuickToolPreview);
-      input.addEventListener('change', updateQuickToolPreview);
-    });
-  }
-  
-  function updateQuickToolPreview() {
-    const label = document.getElementById('quickToolLabel')?.value || '';
-    const price = Number(document.getElementById('quickToolPrice')?.value) || 0;
-    const category = document.getElementById('quickToolCategory')?.value || '';
-    const qty = Number(document.getElementById('quickToolQty')?.value) || 1;
-    
-    let previewHtml = '<div class="preview-title">Förhandsvisning</div><div class="preview-details">';
-    
-    if (label) {
-      previewHtml += `<div><strong>Namn:</strong> ${escapeHtml(label)}</div>`;
-    }
-    
-    if (price > 0) {
-      previewHtml += `<div><strong>Pris:</strong> ${fmtSEK0(price)} per styck</div>`;
-    }
-    
-    if (category) {
-      previewHtml += `<div><strong>Kategori:</strong> ${escapeHtml(category)}</div>`;
-    }
-    
-    if (qty > 1) {
-      previewHtml += `<div><strong>Antal:</strong> ${qty} st</div>`;
-    }
-    
-    if (price > 0 && qty > 0) {
-      const total = price * qty;
-      previewHtml += `<div><strong>Totalt:</strong> ${fmtSEK0(total)}</div>`;
-    }
-    
-    if (!label) {
-      previewHtml += '<div style="color:#999;">Fyll i namn för att se förhandsvisning</div>';
-    }
-    
-    previewHtml += '</div>';
-    quickToolPreview.innerHTML = previewHtml;
-  }
-  
-  function applyQuickTool() {
-    const label = document.getElementById('quickToolLabel')?.value?.trim();
-    if (!label) {
-      alert('Ange ett namn för snabbknappen');
-      return;
-    }
-    
-    const price = Number(document.getElementById('quickToolPrice')?.value) || 0;
-    const category = document.getElementById('quickToolCategory')?.value?.trim() || '';
-    const section = document.getElementById('quickToolSection')?.value?.trim() || '';
-    const qty = Number(document.getElementById('quickToolQty')?.value) || 1;
-    
-    const list = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
-    
-    if (editingChipIndex >= 0) {
-      // Redigera befintlig snabbknapp
-      list[editingChipIndex] = {
-        label: label,
-        price: price,
-        category: category,
-        section: section,
-        qty: qty
+
+    function saveChip(){
+      const label = mLabel.value.trim();
+      if(!label){ alert('Skriv en kategori.'); mLabel.focus(); return; }
+      const obj = {
+        label,
+        amount: Number(mAmount.value)||0,
+        type: mType.value==='Inkomst' ? 'Inkomst' : 'Utgift',
+        pay: mPay.value || '',
+        sec: mSection.value || 'sec_default',
+        note: (mMirror.checked ? (mPay.value||'') : mNote.value.trim())
       };
-    } else {
-      // Skapa ny snabbknapp
-      list.push({
-        label: label,
-        price: price,
-        category: category,
-        section: section,
-        qty: qty
+      const list = JSON.parse(localStorage.getItem(LS_QUICK())||'[]') || [];
+      if(editingChipAbs >= 0 && list[editingChipAbs]){
+        list[editingChipAbs] = obj;
+      }else{
+        list.push(obj);
+      }
+      localStorage.setItem(LS_QUICK(), JSON.stringify(list));
+      cloudSaveDebounced(); // NYTT: synka moln
+      saveCategoryToMemory(label);
+      loadChips();
+      closeChipModal();
+    }
+
+    mSave.addEventListener('click', saveChip);
+
+    // Enter för att spara
+    [mLabel, mAmount, mType, mPay, mSection, mNote].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') {
+          e.preventDefault();
+          saveChip();
+        }
       });
-    }
-    
-    localStorage.setItem('cart_quick_items', JSON.stringify(list));
-    loadChips();
-    closeQuickToolModal();
-  }
-  
-  // Event listeners för snabbknappverktyget
-  document.querySelectorAll('.quick-tool-type button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentQuickToolType = btn.dataset.type;
-      updateQuickToolTypeButtons();
-      updateQuickToolInputs();
-      updateQuickToolPreview();
     });
-  });
-  
-  quickToolCloseBtn.addEventListener('click', closeQuickToolModal);
-  quickToolCancelBtn.addEventListener('click', closeQuickToolModal);
-  quickToolBackdrop.addEventListener('click', closeQuickToolModal);
-  quickToolApplyBtn.addEventListener('click', applyQuickTool);
 
-  /* ======== Sektioner ======== */
-  const sectionsModal = document.getElementById('sectionsModal');
-  const sectionsBackdrop = document.getElementById('sectionsBackdrop');
-  const sectionsCloseBtn = document.getElementById('sectionsCloseBtn');
-  const sectionsCancelBtn = document.getElementById('sectionsCancelBtn');
-  const sectionsBtn = document.getElementById('sectionsBtn');
-  const newSectionName = document.getElementById('newSectionName');
-  const addSectionBtn = document.getElementById('addSectionBtn');
-  const sectionsList = document.getElementById('sectionsList');
-  
-  function getSectionOptions() {
-    const sections = loadSections();
-    return sections.map(section => `<option value="${escapeHtml(section)}">${escapeHtml(section)}</option>`).join('');
-  }
-  
-  function loadSections() {
-    try {
-      const sections = JSON.parse(localStorage.getItem('cart_sections') || '[]');
-      return Array.isArray(sections) ? sections : [];
-    } catch (_) {
-      return [];
-    }
-  }
-  
-  function saveSections(sections) {
-    try {
-      localStorage.setItem('cart_sections', JSON.stringify(sections));
-    } catch (_) {}
-  }
-  
-  window.openSectionsModal = function() {
-    sectionsModal.classList.add('open');
-    sectionsBackdrop.classList.add('open');
-    sectionsModal.setAttribute('aria-hidden', 'false');
-    renderSectionsList();
-  };
-  
-  function closeSectionsModal() {
-    sectionsModal.classList.remove('open');
-    sectionsBackdrop.classList.remove('open');
-    sectionsModal.setAttribute('aria-hidden', 'true');
-  }
-  
-  function renderSectionsList() {
-    const sections = loadSections();
-    const chips = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
-    
-    let html = '';
-    sections.forEach(section => {
-      const sectionChips = chips.filter(chip => chip.section === section);
-      html += `
-        <div class="section-item" style="border:1px solid var(--card-border); border-radius:8px; padding:12px; margin-bottom:12px;">
-          <div class="section-header">
-            <h3>${escapeHtml(section)}</h3>
-            <div class="section-actions">
-              <button onclick="editSectionName('${escapeHtml(section)}')" title="Redigera sektionsnamn" style="background:#e3f2fd; border-color:#90caf9; color:#1976d2;">Redigera</button>
-              <button onclick="deleteSection('${escapeHtml(section)}')" title="Ta bort sektion">Ta bort</button>
-            </div>
-          </div>
-          <div class="section-chips">
-            ${sectionChips.length > 0 ? 
-              sectionChips.map(chip => `
-                <div class="chip">
-                  <span>${escapeHtml(chip.label)}</span>
-                  <span class="edit" onclick="editQuickChip(${chips.indexOf(chip)}, ${JSON.stringify(chip).replace(/"/g, '&quot;')})" title="Redigera">✏️</span>
-                  <span class="x" onclick="removeChipFromSection('${escapeHtml(section)}', ${chips.indexOf(chip)})" title="Ta bort från sektion">×</span>
-                </div>
-              `).join('') : 
-              '<div style="color:#999; font-style:italic;">Inga snabbknappar i denna sektion</div>'
-            }
-          </div>
-        </div>
-      `;
-    });
-    
-    if (sections.length === 0) {
-      html = '<div style="text-align:center; color:#999; padding:20px;">Inga sektioner ännu. Skapa din första sektion!</div>';
-    }
-    
-    sectionsList.innerHTML = html;
-  }
-  
-  function addSection() {
-    const name = newSectionName.value.trim();
-    if (!name) {
-      alert('Ange ett namn för sektionen');
-      return;
-    }
-    
-    const sections = loadSections();
-    if (sections.includes(name)) {
-      alert('En sektion med detta namn finns redan');
-      return;
-    }
-    
-    sections.push(name);
-    saveSections(sections);
-    newSectionName.value = '';
-    renderSectionsList();
-    
-    
-    loadChips(); // Uppdatera snabbknappar på huvudsidan
-  }
-  
-  window.editSectionName = function(oldName) {
-    const newName = prompt(`Redigera sektionsnamn:`, oldName);
-    if (!newName || newName.trim() === '') {
-      return;
-    }
-    
-    const trimmedName = newName.trim();
-    if (trimmedName === oldName) {
-      return; // Inget ändrat
-    }
-    
-    const sections = loadSections();
-    if (sections.includes(trimmedName)) {
-      alert('En sektion med detta namn finns redan');
-      return;
-    }
-    
-    // Uppdatera sektionsnamnet
-    const updatedSections = sections.map(s => s === oldName ? trimmedName : s);
-    saveSections(updatedSections);
-    
-    // Uppdatera snabbknappar som tillhör denna sektion
-    const chips = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
-    chips.forEach(chip => {
-      if (chip.section === oldName) {
-        chip.section = trimmedName;
-      }
-    });
-    localStorage.setItem('cart_quick_items', JSON.stringify(chips));
-    
-    renderSectionsList();
-    loadChips(); // Uppdatera snabbknappar
-  };
+    /* ====== SNABBKNAPPAR: render, DnD, sort-läge, sektioner ====== */
+    let ph = null; // placeholder element
+    let dragFromAbs = null; // absolut index i listan
+    function makePlaceholder(){ const e=document.createElement('div'); e.className='chip placeholder'; e.textContent=' '; return e; }
 
-  window.deleteSection = function(sectionName) {
-    if (!confirm(`Ta bort sektionen "${sectionName}"? Alla snabbknappar i sektionen kommer att flyttas till "Ingen sektion".`)) {
-      return;
+    function items(){
+      let a=[]; try{ a=JSON.parse(localStorage.getItem(LS_QUICK())||'[]'); }catch(_){a=[]}
+      if(!Array.isArray(a)) a=[];
+      a.forEach(it=>{ if(!it.sec) it.sec='sec_default'; });
+      return a;
     }
-    
-    const sections = loadSections();
-    const filteredSections = sections.filter(s => s !== sectionName);
-    saveSections(filteredSections);
-    
-    // Flytta snabbknappar från denna sektion
-    const chips = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
-    chips.forEach(chip => {
-      if (chip.section === sectionName) {
-        delete chip.section;
+    // SPARA chips + trigga moln
+    function saveItems(a){
+      localStorage.setItem(LS_QUICK(), JSON.stringify(a));
+      cloudSaveDebounced(); // NYTT
+    }
+
+    function absoluteInsertIndexForSection(secId, secIndex, list){
+      let count=0;
+      for(let i=0;i<list.length;i++){
+        if(list[i].sec===secId){
+          if(count===secIndex) return i;
+          count++;
+        }
       }
-    });
-    localStorage.setItem('cart_quick_items', JSON.stringify(chips));
-    
-    renderSectionsList();
-    loadChips(); // Uppdatera snabbknappar
-  };
-  
-  function removeChipFromSection(sectionName, chipIndex) {
-    const chips = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
-    if (chips[chipIndex]) {
-      delete chips[chipIndex].section;
-      localStorage.setItem('cart_quick_items', JSON.stringify(chips));
-      renderSectionsList();
+      let last=-1;
+      for(let i=0;i<list.length;i++) if(list[i].sec===secId) last=i;
+      return (last>=0)? (last+1) : list.length;
+    }
+
+    function secIndexOfAbs(absIndex, list){
+      const sec = list[absIndex].sec;
+      let idx=0;
+      for(let i=0;i<absIndex;i++){
+        if(list[i].sec===sec) idx++;
+      }
+      return { sec, index: idx };
+    }
+
+    function moveChip(absFrom, toSecId, toSecIndex){
+      let list = items();
+      if(absFrom<0 || absFrom>=list.length) return;
+      const [item] = list.splice(absFrom,1);
+      item.sec = toSecId;
+      const insertAt = absoluteInsertIndexForSection(toSecId, toSecIndex, list);
+      list.splice(insertAt, 0, item);
+      saveItems(list);
       loadChips();
     }
-  }
-  
-  // Event listeners för sektioner
-  sectionsBtn.addEventListener('click', openSectionsModal);
-  sectionsCloseBtn.addEventListener('click', closeSectionsModal);
-  sectionsCancelBtn.addEventListener('click', closeSectionsModal);
-  sectionsBackdrop.addEventListener('click', closeSectionsModal);
-  addSectionBtn.addEventListener('click', addSection);
-  newSectionName.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addSection();
-  });
 
-  /* ======== Vaktskärm / PIN ======== */
-  const secureGate=(function(){
-    const PIN_OK='8987';
-    const MAX_IDLE=60*60*1000; // 60 min
-    const gate=document.getElementById('gate');
-    const pinForm=document.getElementById('pinForm');
-    const pinInput=document.getElementById('pin');
-    const clearPinBtn=document.getElementById('clearPin');
-
-    function show(){ gate.classList.remove('hidden'); setTimeout(()=>pinInput.focus(), 0); }
-    function hide(){ gate.classList.add('hidden'); }
-    function now(){ return Date.now(); }
-
-    function isAuth(){
-      try{
-        const raw=sessionStorage.getItem('AUTH_OK');
-        if(!raw) return false;
-        const obj=JSON.parse(raw);
-        return obj && obj.expireAt && obj.expireAt > now();
-      }catch(_){ return false; }
+    function moveChipBy(absFrom, deltaWithinSec){
+      let list = items();
+      const {sec, index} = secIndexOfAbs(absFrom, list);
+      const chipsInSec = list.filter(x=>x.sec===sec).length;
+      const newIndex = Math.max(0, Math.min(chipsInSec-1, index+deltaWithinSec));
+      moveChip(absFrom, sec, newIndex);
     }
-    function setAuth(){ const expireAt=now()+MAX_IDLE; sessionStorage.setItem('AUTH_OK', JSON.stringify({expireAt})); }
-    function clearAuth(){ sessionStorage.removeItem('AUTH_OK'); }
 
-    function checkPin(s){ return String(s||'').trim() === PIN_OK; }
-
-    function onSubmit(ev){
-      ev.preventDefault();
-      if(checkPin(pinInput.value)){ setAuth(); hide(); }
-      else { pinInput.value=''; alert('Fel PIN'); }
+    // flytta upp/ner mellan sektioner
+    function moveChipToAdjacentSection(absFrom, dir){
+      const list = items();
+      const secs = loadSections();
+      const {sec, index} = secIndexOfAbs(absFrom, list);
+      let si = secs.findIndex(s=>s.id===sec); if(si<0) si=0;
+      const newSi = dir==='up' ? si-1 : si+1;
+      if(newSi<0 || newSi>=secs.length) return; // utanför gräns
+      const newSecId = secs[newSi].id;
+      const targetCount = list.filter(x=>x.sec===newSecId).length;
+      const toIndex = Math.min(index, targetCount); // behåll ungefär samma position
+      moveChip(absFrom, newSecId, toIndex);
     }
-    function onKeyBtn(ev){
-      const k=ev.target.getAttribute('data-k'); if(!k) return;
-      if(pinInput.value.length < 4){ pinInput.value += k; }
-      if(pinInput.value.length === 4){
-        if(checkPin(pinInput.value)){ setAuth(); hide(); }
-        else { pinInput.value=''; alert('Fel PIN'); }
-      }
-    }
-    function bump(){ if(!isAuth()) return; setAuth(); }
-    function tick(){ if(!isAuth()){ show(); } setTimeout(tick, 15000); }
 
-    function init(){
-      pinForm.querySelectorAll('[data-k]').forEach(b=> b.addEventListener('click', onKeyBtn));
-      clearPinBtn.addEventListener('click', ()=> pinInput.value='');
-      pinInput.addEventListener('input', ()=>{
-        if(pinInput.value.replace(/\D/g,'').length === 4){
-          if(checkPin(pinInput.value)){ setAuth(); hide(); }
-          else { pinInput.value=''; alert('Fel PIN'); }
+    function renderSection(sec){
+      const box = document.createElement('div');
+      box.className='chip-section';
+      box.setAttribute('data-sec', sec.id);
+
+      const head = document.createElement('div');
+      head.className='sec-head';
+      head.innerHTML = `<h4>${escapeHtml(sec.name)}</h4>`;
+      const tools = document.createElement('div');
+      tools.className='sec-tools';
+      const btnRename = document.createElement('button'); btnRename.textContent='Byt namn';
+      const btnDelete = document.createElement('button'); btnDelete.textContent='Ta bort';
+      tools.appendChild(btnRename); tools.appendChild(btnDelete);
+      head.appendChild(tools);
+      box.appendChild(head);
+
+      const bin = document.createElement('div');
+      bin.className='chip-bin empty';
+      bin.setAttribute('data-sec', sec.id);
+      box.appendChild(bin);
+
+      // DnD exakt placering - ULTRA mjuk
+      let lastPlaceholder = null;
+      bin.addEventListener('dragover', (e)=>{
+        console.log('Drag over bin:', bin.getAttribute('data-sec'));
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const chips = [...bin.querySelectorAll('.chip[data-abs]')];
+        if(chips.length) bin.classList.remove('empty');
+        
+        const x = e.clientX, y = e.clientY;
+        let after = null;
+        let closestDistance = Infinity;
+        let closestChip = null;
+        
+        // Super mjuk algoritm - mindre hackig
+        for(const child of chips){
+          const rect = child.getBoundingClientRect();
+          const centerX = rect.left + rect.width/2;
+          const centerY = rect.top + rect.height/2;
+          
+          // Enklare avståndsberäkning för mjukare känsla
+          const deltaX = Math.abs(x - centerX);
+          const deltaY = Math.abs(y - centerY);
+          const distance = deltaX + deltaY * 0.3;
+          
+          if(distance < closestDistance){
+            closestDistance = distance;
+            closestChip = child;
+          }
+        }
+        
+        if(closestChip){
+          const rect = closestChip.getBoundingClientRect();
+          const mid = rect.left + rect.width/2;
+          after = (x >= mid) ? closestChip.nextSibling : closestChip;
+        }
+        
+        // Undvik onödig DOM-manipulation
+        if(!ph) ph = makePlaceholder();
+        
+        const newPosition = after ? after : null;
+        if(newPosition !== lastPlaceholder){
+          if(after) bin.insertBefore(ph, after);
+          else bin.appendChild(ph);
+          lastPlaceholder = newPosition;
+        }
+        
+        // Mjuk visuell feedback
+        bin.style.background = 'rgba(13, 108, 119, 0.06)';
+        bin.style.border = '1px dashed var(--accent)';
+        bin.style.borderRadius = '8px';
+      });
+      
+      bin.addEventListener('dragleave', (e)=>{
+        // Ta bort visuell feedback när man lämnar området
+        if(!bin.contains(e.relatedTarget)){
+          bin.style.background = '';
+          bin.style.border = '';
         }
       });
-      pinForm.addEventListener('submit', onSubmit);
-      if(isAuth()) hide(); else show();
-      tick();
+      
+      bin.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        if(dragFromAbs==null) return;
+        const toSec = bin.getAttribute('data-sec');
+        let toIndex = 0;
+        for(const child of bin.children){
+          if(child===ph) break;
+          if(child.classList && child.classList.contains('chip') && child.hasAttribute('data-abs')) toIndex++;
+        }
+        moveChip(dragFromAbs, toSec, toIndex);
+        cleanupPlaceholder();
+        
+        // Ta bort visuell feedback med animation
+        bin.style.background = '';
+        bin.style.border = '';
+        bin.style.borderRadius = '';
+        
+        // Lägg till success-feedback
+        bin.style.background = 'rgba(27, 143, 74, 0.1)';
+        bin.style.border = '2px solid var(--good)';
+        setTimeout(() => {
+          bin.style.background = '';
+          bin.style.border = '';
+        }, 300);
+      });
+
+      // tools
+      btnRename.onclick = ()=>{
+        const name = prompt('Nytt namn på sektion:', sec.name);
+        if(!name) return;
+        const secs = loadSections();
+        const i = secs.findIndex(s=>s.id===sec.id);
+        if(i>-1){ secs[i].name = name.trim(); saveSections(secs); loadChips(); }
+      };
+      btnDelete.onclick = ()=>{
+        const list = items();
+        if(list.some(x=>x.sec===sec.id)){ alert('Sektionen är inte tom. Flytta eller ta bort snabbknappar först.'); return; }
+        const secs = loadSections().filter(s=>s.id!==sec.id);
+        if(secs.length===0){ alert('Minst en sektion krävs.'); return; }
+        saveSections(secs); loadChips();
+      };
+
+      return box;
     }
 
-    logoutBtn.addEventListener('click', ()=>{ clearAuth(); show(); });
+    function cleanupPlaceholder(){
+      if(ph && ph.parentNode) ph.parentNode.removeChild(ph);
+      ph=null; dragFromAbs=null;
+      
+      // Mjuk cleanup av visuell feedback
+      document.querySelectorAll('.chip-bin').forEach(bin => {
+        bin.style.background = '';
+        bin.style.border = '';
+        bin.style.borderRadius = '';
+        bin.style.transition = '';
+      });
+    }
 
-    return { init, bump, logout: ()=>{ clearAuth(); show(); } };
-  })();
+    function loadChips(){
+      chipSections.innerHTML='';
+      const secs = loadSections();
+      secs.forEach(sec=> chipSections.appendChild(renderSection(sec)));
 
-  /* ===== DRAG & DROP FUNKTIONALITET ===== */
-  let draggedChip = null;
-  let draggedChipData = null;
+      const list = items();
+      list.forEach((c,absIdx)=>{
+        const bin = chipSections.querySelector(`.chip-bin[data-sec="${c.sec||'sec_default'}"]`) || chipSections.querySelector('.chip-bin[data-sec="sec_default"]');
+        if(bin) bin.classList.remove('empty');
+        const el = document.createElement('div');
+        el.className='chip';
+        el.setAttribute('draggable','true');
+        el.setAttribute('data-abs', String(absIdx));
 
-  function setupDragAndDrop() {
-    // Lägg till drag event listeners på alla chips
-    document.addEventListener('dragstart', (e) => {
-      if (e.target.classList.contains('chip')) {
-        draggedChip = e.target;
-        draggedChipData = {
-          originalIndex: parseInt(e.target.querySelector('.edit').dataset.i),
-          section: e.target.closest('.section-item')?.querySelector('h3')?.textContent || null
+        const tags = [c.type||'Utgift', c.pay||'−'].filter(Boolean).join(' · ');
+        el.innerHTML = `
+          <span class="handle" title="Dra för att flytta">⋮⋮</span>
+          <span class="label">${escapeHtml(c.label)} <small>(${escapeHtml(tags)})</small></span>
+          <span class="mv" data-mv="left"  title="Flytta vänster (inom sektion)">←</span>
+          <span class="mv" data-mv="right" title="Flytta höger (inom sektion)">→</span>
+          <span class="mv" data-mv="up"    title="Flytta till sektionen ovan">↑</span>
+          <span class="mv" data-mv="down"  title="Flytta till sektionen nedan">↓</span>
+          <span class="edit" title="Redigera snabbknapp">✏️</span>
+          <span class="x" title="Ta bort">×</span>
+        `;
+
+        // klick = lägg till rad
+        el.addEventListener('click',(ev)=>{
+          const t = ev.target;
+          if(t.classList.contains('x') || t.classList.contains('edit') || t.classList.contains('mv')) return;
+          rows.push({ category:c.label||'', amount:Number(c.amount||0), type:(c.type||'Utgift'), pay:(c.pay||''), note:(c.note||'') });
+          render(); updateTotals(); saveLocal(); cloudSaveDebounced();
+        });
+
+        // Handle för drag
+        el.querySelector('.handle').addEventListener('mousedown', (ev)=>{
+          ev.stopPropagation();
+          el.draggable = true;
+        });
+
+        // ta bort
+        el.querySelector('.x').addEventListener('click',(ev)=>{
+          ev.stopPropagation();
+          const arr = items();
+          arr.splice(absIdx,1); saveItems(arr); loadChips();
+        });
+
+        // redigera
+        el.querySelector('.edit').addEventListener('click',(ev)=>{
+          ev.stopPropagation();
+          openChipModal(absIdx);
+        });
+
+        // pilar
+        el.querySelectorAll('.mv').forEach(btn=>{
+          btn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            const dir = btn.getAttribute('data-mv');
+            if(dir==='left')  return moveChipBy(absIdx, -1);
+            if(dir==='right') return moveChipBy(absIdx, +1);
+            if(dir==='up')    return moveChipToAdjacentSection(absIdx, 'up');
+            if(dir==='down')  return moveChipToAdjacentSection(absIdx, 'down');
+          });
+        });
+
+        // DnD - ULTRA mjuk
+        el.addEventListener('dragstart', (e)=>{
+          console.log('Drag start:', absIdx);
+          dragFromAbs = absIdx;
+          el.classList.add('dragging');
+          try{ e.dataTransfer.setData('text/plain', String(absIdx)); }catch(_){}
+          e.dataTransfer.effectAllowed='move';
+          
+          // Mjuk visuell feedback
+          el.style.transform = 'rotate(2deg) scale(1.05)';
+          el.style.transition = 'none';
+          
+          // Lägg till haptic feedback om tillgängligt
+          if(navigator.vibrate) {
+            navigator.vibrate(30);
+          }
+        });
+        el.addEventListener('dragend', ()=>{
+          el.classList.remove('dragging');
+          el.style.transform = '';
+          cleanupPlaceholder();
+        });
+
+        bin && bin.appendChild(el);
+      });
+
+      chipSections.querySelectorAll('.chip-bin').forEach(b=>{
+        if(!b.querySelector('.chip')) b.classList.add('empty');
+      });
+    }
+
+    // Sortläge: visa pilar
+    sortChipsBtn.addEventListener('click', ()=>{
+      sortChipsBtn.classList.toggle('active');
+      chipsWrap.classList.toggle('sort-mode');     // ev. chips i toolbar
+      chipSections.classList.toggle('sort-mode');  // pilar i sektioner
+    });
+
+    // Ny sektion
+    addSectionBtn.addEventListener('click', ()=>{
+      const name = prompt('Namn på ny sektion:', 'Ny sektion');
+      if(!name) return;
+      const secs = loadSections();
+      secs.push({id:uid(), name:name.trim()});
+      saveSections(secs); // triggar moln
+      loadChips();
+    });
+
+    /* ====== MOLN (AUTOSAVE) ====== */
+    let isLoadingFromCloud = false;
+    function payload(){
+      return {
+        rows,
+        salary: Number(salary)||0,
+        quick: items(),           // snabbknappar
+        sections: loadSections(), // sektioner
+        updatedAt: Date.now()
+      };
+    }
+
+    async function cloudSave(){
+      if(!cloudEnabled() || isLoadingFromCloud) return;
+      try{
+        const form = new URLSearchParams();
+        form.set('op','save');
+        form.set('key', cloudKey());
+        form.set('secret', CLOUD.secret||'');
+        form.set('data', JSON.stringify(payload()));
+        const res = await fetch(CLOUD.endpoint, { method:'POST', body: form });
+        await res.text();
+        cloudInfo.textContent = 'Autosparat ✔︎';
+        cloudInfo.style.color = 'var(--good)';
+        
+        // Dölj status efter 3 sekunder
+        setTimeout(() => {
+          if(cloudInfo.textContent === 'Autosparat ✔︎') {
+            cloudInfo.textContent = '';
+          }
+        }, 3000);
+      }catch(err){
+        cloudInfo.textContent = 'Kunde inte autospara';
+        cloudInfo.style.color = 'var(--bad)';
+      }
+    }
+    const cloudSaveDebounced = debounce(cloudSave, 1000);
+
+    async function cloudLoad(){
+      if(!cloudEnabled()) return;
+      isLoadingFromCloud = true;
+      try{
+        const url = `${CLOUD.endpoint}?op=load&key=${encodeURIComponent(cloudKey())}&secret=${encodeURIComponent(CLOUD.secret||'')}`;
+        const res = await fetch(url, { method:'GET' });
+        const text = await res.text();
+        let json; try{ json = JSON.parse(text); }catch(_){}
+        const data = (json && json.ok && json.data) ? json.data : json;
+
+        if(data && Array.isArray(data.rows)){
+          rows = data.rows.map(r=>({
+            category:r.category||'',
+            amount:Number(r.amount)||0,
+            type:r.type==='Inkomst'?'Inkomst':'Utgift',
+            pay:(typeof r.pay==='string')?r.pay:'',
+            note:r.note||''
+          }));
+          salary = Number(data.salary)||0;
+          salaryInput.value = salary || '';
+          cloudInfo.textContent = 'Moln laddat ✔︎';
+          cloudInfo.style.color = 'var(--good)';
+        }else{
+          cloudInfo.textContent = 'Ingen molndata (än)';
+          cloudInfo.style.color = 'var(--text-soft)';
+        }
+
+        // NYTT: hämta snabbknappar + sektioner till localStorage
+        if (data && Array.isArray(data.quick)) {
+          localStorage.setItem(LS_QUICK(), JSON.stringify(data.quick));
+        }
+        if (data && Array.isArray(data.sections)) {
+          localStorage.setItem(LS_SECTS(), JSON.stringify(data.sections));
+        }
+
+      }catch(err){
+        console.warn('Moln load fel:', err);
+        cloudInfo.textContent = 'Molnfel vid laddning';
+      }finally{
+        render(); updateTotals(); loadChips(); // se till att UI visar chips/sektioner från molnet
+        isLoadingFromCloud = false;
+      }
+    }
+
+    /* ====== LOCAL SAVE ====== */
+    function saveLocal(){
+      localStorage.setItem(LS_ROWS(), JSON.stringify(rows));
+      localStorage.setItem(LS_SALARY(), String(Number(salary)||0));
+    }
+    function loadLocal(){
+      try{ const r = JSON.parse(localStorage.getItem(LS_ROWS())||'[]'); if(Array.isArray(r)) rows = r; }catch(_) {}
+      salary = Number(localStorage.getItem(LS_SALARY())||0) || 0;
+      salaryInput.value = salary || '';
+    }
+
+    /* ====== INIT ====== */
+    function init(){
+      loadCategoryMemory();
+      loadLocal();
+      loadChips();     // rita ev. lokala chips direkt
+      cloudLoad();     // och ersätt med moln om sådant finns
+      render(); updateTotals();
+
+      salaryInput.addEventListener('input', ()=>{
+        salary = Number(salaryInput.value)||0;
+        saveLocal(); cloudSaveDebounced(); updateTotals();
+      });
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.visibilityState==='hidden'){ saveLocal(); cloudSave(); setUnlockTs(); }
+      });
+      // Dölj moln-nyckel - bara visa status
+      cloudInfo.textContent = '';
+    }
+
+    /* ====== RENDER TABELL ====== */
+    function autoGrow(el){
+      el.style.height = 'auto';
+      const h = Math.min(200, Math.max(48, el.scrollHeight+2));
+      el.style.height = h + 'px';
+    }
+
+    function render(){
+      tbody.innerHTML = '';
+      if(rows.length === 0){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="6" style="padding:18px;color:#6b8a90;text-align:center"><em>Inga rader ännu — klicka <strong>+ Lägg till rad</strong> eller använd en snabbknapp.</em></td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+      rows.forEach((r,i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="text" data-i="${i}" data-col="category" value="${escapeHtml(r.category)}" placeholder="Kategori" list="categoryMemory"></td>
+          <td class="right"><input type="number" data-i="${i}" data-col="amount" value="${Number(r.amount)||0}" step="1" inputmode="decimal" placeholder="0"></td>
+          <td>
+            <select data-i="${i}" data-col="type">
+              <option ${r.type==='Utgift'?'selected':''}>Utgift</option>
+              <option ${r.type==='Inkomst'?'selected':''}>Inkomst</option>
+            </select>
+          </td>
+          <td>
+            <select data-i="${i}" data-col="pay">
+              <option value="" ${(!r.pay||r.pay==='')?'selected':''}>-</option>
+              <option value="Autogiro" ${r.pay==='Autogiro'?'selected':''}>Autogiro</option>
+              <option value="E-faktura" ${r.pay==='E-faktura'?'selected':''}>E-faktura</option>
+              <option value="Pappersfaktura" ${r.pay==='Pappersfaktura'?'selected':''}>Pappersfaktura</option>
+              <option value="Annat" ${r.pay==='Annat'?'selected':''}>Annat</option>
+            </select>
+          </td>
+          <td class="col-note">
+            <textarea class="note-input" data-i="${i}" data-col="note" placeholder="Anteckningar (valfritt) – större fält">${escapeHtml(r.note||'')}</textarea>
+          </td>
+          <td class="row-actions">
+            <button data-action="up" data-i="${i}" title="Flytta upp">↑</button>
+            <button data-action="down" data-i="${i}" title="Flytta ner">↓</button>
+            <button data-action="neg" data-i="${i}" title="Växla +/−">±</button>
+            <button data-action="del" data-i="${i}" title="Ta bort" class="danger">Ta bort</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      attachEvents();
+      tbody.querySelectorAll('textarea.note-input').forEach(t=>autoGrow(t));
+    }
+
+    function attachEvents(){
+      tbody.querySelectorAll('input[data-col], select[data-col], textarea[data-col]').forEach(el=>{
+        const handler = ()=>{
+          const i = +el.dataset.i, col = el.dataset.col;
+          if(!rows[i]) return;
+          if(col==='amount') rows[i][col] = Number(el.value)||0;
+          else rows[i][col] = el.value;
+          if(col==='category') saveCategoryToMemory(el.value);
+          saveLocal(); cloudSaveDebounced(); updateTotals();
+          if(el.tagName==='TEXTAREA') autoGrow(el);
         };
-        e.target.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', e.target.outerHTML);
-      }
-    });
+        el.addEventListener('input', handler);
+        el.addEventListener('change', handler);
+        if(el.dataset.col==='amount'){
+          el.onfocus = ()=>{ if(el.value==='0'||el.value==='') el.value=''; };
+          el.onblur = ()=>{ if(el.value===''||isNaN(Number(el.value))){ el.value='0'; handler(); } };
+        }
+      });
 
-    document.addEventListener('dragend', (e) => {
-      if (e.target.classList.contains('chip')) {
-        e.target.classList.remove('dragging');
-        draggedChip = null;
-        draggedChipData = null;
-      }
-    });
-
-    // Hantera drop zones för sektioner
-    document.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      const sectionChips = e.target.closest('.section-chips');
-      if (sectionChips) {
-        sectionChips.classList.add('drag-over');
-      }
-    });
-
-    document.addEventListener('dragleave', (e) => {
-      const sectionChips = e.target.closest('.section-chips');
-      if (sectionChips && !sectionChips.contains(e.relatedTarget)) {
-        sectionChips.classList.remove('drag-over');
-      }
-    });
-
-    document.addEventListener('drop', (e) => {
-      e.preventDefault();
-      const sectionChips = e.target.closest('.section-chips');
-      if (sectionChips && draggedChipData) {
-        sectionChips.classList.remove('drag-over');
-        
-        // Hitta sektionens namn
-        const sectionName = sectionChips.closest('.section-item').querySelector('h3').textContent;
-        
-        // Uppdatera snabbknappens sektion i localStorage
-        updateChipSection(draggedChipData.originalIndex, sectionName);
-        
-        // Ladda om snabbknapparna
-        loadChips();
-      }
-    });
-  }
-
-  function updateChipSection(chipIndex, newSection) {
-    const quickItems = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
-    if (quickItems[chipIndex]) {
-      quickItems[chipIndex].section = newSection;
-      localStorage.setItem('cart_quick_items', JSON.stringify(quickItems));
+      tbody.querySelectorAll('button[data-action]').forEach(btn=>{
+        btn.onclick = ()=>{
+          const i = +btn.dataset.i, act = btn.dataset.action;
+          if(act==='del'){ rows.splice(i,1); render(); }
+          else if(act==='neg'){ rows[i].amount = -rows[i].amount; render(); }
+          else if(act==='up'){ if(i>0) moveRow(i,i-1); }
+          else if(act==='down'){ if(i<rows.length-1) moveRow(i,i+1); }
+          saveLocal(); cloudSaveDebounced(); updateTotals();
+        };
+      });
     }
-  }
 
-  // Lägg till drag & drop setup när sidan laddas
-  document.addEventListener('DOMContentLoaded', setupDragAndDrop);
+    function moveRow(from,to){
+      if(from<0||to<0||from>=rows.length||to>=rows.length) return;
+      const item = rows.splice(from,1)[0]; rows.splice(to,0,item); render();
+    }
 
-  /* GO */
-  init();
+    addRowBtn.onclick = ()=>{
+      rows.push({category:'', amount:0, type:'Utgift', pay:'', note:''});
+      render(); updateTotals(); saveLocal(); cloudSaveDebounced();
+      const lastInput = document.querySelector('#tbody tr:last-child td:first-child input');
+      if(lastInput) lastInput.focus();
+    };
 
-})();
-</script>
+    function updateTotals(){
+      let sumIncome = 0, sumExpense = 0;
+      rows.forEach(r=>{
+        const amt = Number(r.amount)||0;
+        if(r.type==='Inkomst') sumIncome += amt; else sumExpense += amt;
+      });
+      totalIncomeEl.textContent  = fmt.format(Math.round(sumIncome));
+      totalExpenseEl.textContent = fmt.format(Math.round(sumExpense));
+      const s = Number(salary)||0;
+      salaryDisplayEl.textContent = fmt.format(Math.round(s));
+      const salaryLeft = Math.round(s - sumExpense);
+      salaryLeftEl.textContent = fmt.format(salaryLeft);
+      const balance = Math.round(s + sumIncome - sumExpense);
+      balanceEl.textContent = fmt.format(balance);
+      bufferEl.textContent = fmt.format(balance);
+
+      salaryLeftEl.classList.toggle('bad', salaryLeft<0);
+      salaryLeftEl.classList.toggle('good', salaryLeft>=0);
+      balanceEl.classList.toggle('bad', balance<0);
+      balanceEl.classList.toggle('good', balance>=0);
+      bufferEl.classList.toggle('bad', balance<0);
+      bufferEl.classList.toggle('good', balance>=0);
+    }
+
+
+    resetBtn.onclick = ()=>{
+      if(!confirm('Nollställ bara kategorier? (Snabbknappar och sektioner behålls)')) return;
+      rows=[]; salary=0; salaryInput.value='';
+      saveLocal(); render(); updateTotals(); cloudSave();
+    };
+
+    deleteAllBtn.onclick = ()=>{
+      if(!confirm('VARNING: Detta raderar ALLT - kategorier, snabbknappar och sektioner. Är du säker?')) return;
+      
+      // Rensa kategorier
+      rows=[]; salary=0; salaryInput.value='';
+      saveLocal();
+      
+      // Rensa snabbknappar
+      localStorage.removeItem(LS_QUICK());
+      
+      // Rensa sektioner
+      localStorage.removeItem(LS_SECTS());
+      
+      // Rensa kategori-minne
+      localStorage.removeItem(LS_MEMCAT());
+      
+      render(); updateTotals(); loadChips(); loadCategoryMemory();
+      cloudSave();
+      alert('ALLT raderat - kategorier, snabbknappar, sektioner och kategori-minnet.');
+    };
+
+    /* GO */
+    init();
+  })();
+  </script>
 </body>
 </html>
