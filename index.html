@@ -780,6 +780,10 @@
       showCloudStatus('Molnfel vid laddning');
     }finally{
       render(); updateTotals(); loadChips();
+      // Säkerställ att snabbknappar och sektioner laddas efter molndata
+      setTimeout(() => {
+        loadChips();
+      }, 100);
     }
   }
 
