@@ -960,7 +960,7 @@
         el.draggable = true;
         el.innerHTML = `<span>${escapeHtml(chip.label)}</span><span class="edit" title="Redigera" data-i="${chip.originalIndex}">✏️</span><span class="x" title="Ta bort" data-i="${chip.originalIndex}">×</span>`;
         el.addEventListener('click', (ev) => { if(ev.target.classList.contains('x') || ev.target.classList.contains('edit')) return; addRowFromChip(chip); });
-        el.querySelector('.x').addEventListener('click', (ev) => { ev.stopPropagation(); const arr=JSON.parse(localStorage.getItem('cart_quick_items')||'[]'); arr.splice(chip.originalIndex,1); localStorage.setItem('cart_quick_items',JSON.stringify(arr)); loadChips(); });
+        el.querySelector('.x').addEventListener('click', (ev) => { ev.stopPropagation(); const arr=JSON.parse(localStorage.getItem('cart_quick_items')||'[]'); arr.splice(chip.originalIndex,1); localStorage.setItem('cart_quick_items',JSON.stringify(arr)); loadChips(); if(cloudEnabled()) cloudSaveDebounced(); });
         el.querySelector('.edit').addEventListener('click', (ev) => { ev.stopPropagation(); editQuickChip(chip.originalIndex, chip); });
         unsortedDiv.appendChild(el);
       });
@@ -1004,7 +1004,7 @@
         el.draggable = true;
         el.innerHTML = `<span>${escapeHtml(chip.label)}</span><span class="edit" title="Redigera" data-i="${chip.originalIndex}">✏️</span><span class="x" title="Ta bort" data-i="${chip.originalIndex}">×</span>`;
         el.addEventListener('click', (ev) => { if(ev.target.classList.contains('x') || ev.target.classList.contains('edit')) return; addRowFromChip(chip); });
-        el.querySelector('.x').addEventListener('click', (ev) => { ev.stopPropagation(); const arr=JSON.parse(localStorage.getItem('cart_quick_items')||'[]'); arr.splice(chip.originalIndex,1); localStorage.setItem('cart_quick_items',JSON.stringify(arr)); loadChips(); });
+        el.querySelector('.x').addEventListener('click', (ev) => { ev.stopPropagation(); const arr=JSON.parse(localStorage.getItem('cart_quick_items')||'[]'); arr.splice(chip.originalIndex,1); localStorage.setItem('cart_quick_items',JSON.stringify(arr)); loadChips(); if(cloudEnabled()) cloudSaveDebounced(); });
         el.querySelector('.edit').addEventListener('click', (ev) => { ev.stopPropagation(); editQuickChip(chip.originalIndex, chip); });
         chipsDiv.appendChild(el);
       });
@@ -2101,6 +2101,7 @@
     localStorage.setItem('cart_quick_items', JSON.stringify(list));
     loadChips();
     closeQuickToolModal();
+    if(cloudEnabled()) cloudSaveDebounced();
   }
   
   // Event listeners för snabbknappverktyget
@@ -2277,16 +2278,17 @@
     
     renderSectionsList();
     loadChips(); // Uppdatera snabbknappar
+    if(cloudEnabled()) cloudSaveDebounced();
   };
   
   function removeChipFromSection(sectionName, chipIndex) {
     const chips = JSON.parse(localStorage.getItem('cart_quick_items') || '[]');
     if (chips[chipIndex]) {
       delete chips[chipIndex].section;
-    localStorage.setItem('cart_quick_items', JSON.stringify(chips));
-    renderSectionsList();
-    loadChips();
-    if(cloudEnabled()) cloudSaveDebounced();
+      localStorage.setItem('cart_quick_items', JSON.stringify(chips));
+      renderSectionsList();
+      loadChips();
+      if(cloudEnabled()) cloudSaveDebounced();
     }
   }
   
@@ -2427,6 +2429,7 @@
     if (quickItems[chipIndex]) {
       quickItems[chipIndex].section = newSection;
       localStorage.setItem('cart_quick_items', JSON.stringify(quickItems));
+      if(cloudEnabled()) cloudSaveDebounced();
     }
   }
 
